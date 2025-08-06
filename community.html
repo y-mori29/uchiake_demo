@@ -56,17 +56,17 @@
     <!-- ヘッダー (ログイン後) -->
     <header class="sticky top-0 w-full z-40 flex items-center justify-between px-4 py-2 bg-white shadow-md">
         <h1 class="flex justify-start text-xl font-bold">
-            <a class="flex items-center text-gray-800" href="/">
+            <a class="flex items-center text-gray-800" href="profile">
                 <img alt="うちあけ ロゴ" class="rounded-full shadow-sm" height="40" src="https://placehold.co/40x40/FFDDC1/FF6B35?text=U" width="40" />
                 <p class="ml-2 whitespace-nowrap text-orange-500 font-klee text-2xl">うちあけ</p>
             </a>
         </h1>
         <div class="grow"></div>
         <nav class="flex items-center gap-4 sm:gap-6">
-            <a href="#" class="relative text-gray-600 hover:text-orange-500 transition notification-bell" data-count="3" title="通知">
+            <a href="notification" class="relative text-gray-600 hover:text-orange-500 transition notification-bell" data-count="3" title="通知">
                 <i class="fas fa-bell text-2xl"></i>
             </a>
-            <a href="#my-page-content" class="flex items-center gap-2 hover:opacity-80 transition" title="マイページ">
+            <a href="profile" class="flex items-center gap-2 hover:opacity-80 transition" title="マイページ">
                 <img src="https://placehold.co/40x40/a7f3d0/166534?text=A" alt="プロフィール画像" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-orange-200">
                 <span class="hidden sm:inline font-semibold text-gray-700">あなたさん</span>
             </a>
@@ -84,7 +84,7 @@
             </div>
             <!-- ルールとガイドラインへの導線 -->
             <div class="mt-4 text-center">
-                <a href="#" class="text-sm text-blue-600 hover:underline">
+                <a href="guideline" class="text-sm text-blue-600 hover:underline">
                     <i class="fas fa-shield-halved mr-1"></i>コミュニティの安心安全ガイドライン
                 </a>
             </div>
@@ -96,7 +96,7 @@
                 <input type="search" id="community-search" placeholder="コミュニティを探す (例: 関節リウマチ, 30代)" class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-orange-400">
                 <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
             </div>
-             <a href="#" class="w-full sm:w-auto shrink-0 bg-orange-500 text-white font-bold py-3 px-6 rounded-full transition shadow-md hover:bg-orange-600 flex items-center justify-center">
+             <a href="new/community" class="w-full sm:w-auto shrink-0 bg-orange-500 text-white font-bold py-3 px-6 rounded-full transition shadow-md hover:bg-orange-600 flex items-center justify-center">
                 <i class="fas fa-plus mr-2"></i>
                 <span>新しいコミュニティを作る</span>
             </a>
@@ -127,7 +127,7 @@
                     <p class="text-sm text-gray-600 flex-grow">日々の痛みや治療のこと、情報交換しませんか？同じ悩みを持つ仲間が待っています。</p>
                     <div class="flex items-center text-gray-500 text-sm mt-4 pt-4 border-t">
                         <i class="fas fa-user-friends mr-2"></i> 350人
-                        <a href="#" class="ml-auto bg-orange-500 text-white font-semibold py-2 px-4 rounded-full text-sm hover:bg-orange-600 transition">参加する</a>
+                        <a href="community-detail" class="ml-auto bg-orange-500 text-white font-semibold py-2 px-4 rounded-full text-sm hover:bg-orange-600 transition">参加する</a>
                     </div>
                 </div>
                 <!-- おすすめコミュニティカードの例 2 -->
@@ -142,7 +142,7 @@
                     <p class="text-sm text-gray-600 flex-grow">病気と向き合う中での不安やストレス。ここでゆっくり、あなたのペースで話してみませんか。</p>
                     <div class="flex items-center text-gray-500 text-sm mt-4 pt-4 border-t">
                         <i class="fas fa-user-friends mr-2"></i> 1,205人
-                        <a href="#" class="ml-auto bg-orange-500 text-white font-semibold py-2 px-4 rounded-full text-sm hover:bg-orange-600 transition">参加する</a>
+                        <a href="community-detail" class="ml-auto bg-orange-500 text-white font-semibold py-2 px-4 rounded-full text-sm hover:bg-orange-600 transition">参加する</a>
                     </div>
                 </div>
             </div>
@@ -154,7 +154,7 @@
                     <div class="flex items-center mb-4">
                         <img src="https://placehold.co/64x64/fee2e2/b91c1c?text=多" class="w-16 h-16 rounded-xl" alt="多発性骨髄腫コミュニティのアイコン">
                         <div class="ml-4">
-                            <h2 class="text-lg font-bold text-gray-800">多発性骨髄腫</h2>
+                            <h2 class="text-lg font-bold text-gray-800"><a href="community-detail">多発性骨髄腫</a></h2>
                         </div>
                     </div>
                     <p class="text-sm text-gray-600 flex-grow">治療の進捗や副作用について共有し、支え合うコミュニティです。</p>
@@ -162,7 +162,7 @@
                          <p class="text-xs text-gray-500 mb-2 font-semibold">
                             <i class="fas fa-fire-alt text-red-500"></i> 新着トピック
                          </p>
-                         <a href="#" class="text-sm text-blue-600 hover:underline line-clamp-1">新しい治療薬の使い心地について</a>
+                         <a href="topic-detail" class="text-sm text-blue-600 hover:underline line-clamp-1">新しい治療薬の使い心地について</a>
                     </div>
                     <div class="flex items-center text-gray-500 text-sm mt-4">
                         <i class="fas fa-user-friends mr-2"></i> 57人
