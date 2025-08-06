@@ -284,7 +284,7 @@
                     <!-- Buffet items will be dynamically inserted here -->
                 </div>
                 <div class="mt-8">
-                    <button class="nav-link w-full sm:w-auto btn-secondary font-bold py-3 px-6 rounded-full transition" data-target="screen-supporter-mypage">今はやめておく</button>
+                    <button class="nav-link w-full sm:w-auto btn-secondary font-bold py-3 px-6 rounded-full transition" data-target="screen-supporter-mypage">記録を完了する</button>
                 </div>
             </div>
         </div>
@@ -1102,7 +1102,21 @@
             let searchTimeout; const toHiragana = (str) => str.replace(/[\u30a1-\u30f6]/g, match => String.fromCharCode(match.charCodeAt(0) - 0x60)); if(categorySearchInput) { categorySearchInput.addEventListener('input', (e) => { clearTimeout(searchTimeout); const searchTerm = e.target.value.toLowerCase().trim(); const aiStatus = document.getElementById('ai-status'); if (!searchTerm) { resetCategoryView(); return; } aiStatus.style.opacity = '1'; searchTimeout = setTimeout(() => { const matches = new Set(); for (const category in diseaseDatabase) { const data = diseaseDatabase[category]; const hiraganaSearchTerm = toHiragana(searchTerm); const keywords = data.keywords.map(k => toHiragana(k.toLowerCase())); if (keywords.some(kw => kw.includes(hiraganaSearchTerm))) { matches.add(category); } } updateCategoryViewWithSearchResults(Array.from(matches)); aiStatus.style.opacity = '0'; }, 800); }); }
             const updateCategoryViewWithSearchResults = (matches) => { categoryGrid.querySelectorAll('.category-btn').forEach(btn => { const categoryName = btn.dataset.category; btn.classList.remove('selected', 'suggested', 'dimmed'); if(matches.length > 0) { if (matches.includes(categoryName)) { btn.classList.add('suggested'); } else { btn.classList.add('dimmed'); } } }); };
             const resetCategoryView = () => { categoryGrid.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('selected', 'suggested', 'dimmed')); state.selectedCategory = null; document.getElementById('disease-examples-container').style.display = 'none'; confirmCategoryBtn.disabled = true; document.getElementById('ai-status').style.opacity = '0'; };
-            document.querySelectorAll('.nav-link').forEach(link => link.addEventListener('click', (e) => { e.preventDefault(); showScreen(e.currentTarget.dataset.target); }));
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = e.currentTarget.dataset.target;
+
+                    // もし遷移先がマイページ（screen-supporter-mypage）だったら
+                    if (targetId === 'screen-supporter-mypage') {
+                        // profile.htmlへページを移動させる
+                        window.location.href = 'profile';
+                    } else {
+                        // それ以外のボタンは、これまで通りページ内遷移を行う
+                        showScreen(targetId);
+                    }
+                });
+            });
             document.querySelectorAll('.purpose-card').forEach(card => card.addEventListener('click', (e) => { const flow = e.currentTarget.dataset.flow; state.currentFlow = flow; if(flow==='talk')showScreen('screen-talk-post');else if(flow==='record')showScreen('screen-record-post');else if(flow==='contribute')showScreen('screen-contribute-post');}));
             
             // Mood selector logic
