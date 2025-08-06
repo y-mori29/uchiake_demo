@@ -56,17 +56,17 @@
     <!-- ヘッダー (ログイン後) -->
     <header class="sticky top-0 w-full z-40 flex items-center justify-between px-4 py-2 bg-white shadow-md">
         <h1 class="flex justify-start text-xl font-bold">
-            <a class="flex items-center text-gray-800" href="/">
+            <a class="flex items-center text-gray-800" href="profile">
                 <img alt="うちあけ ロゴ" class="rounded-full shadow-sm" height="40" src="https://placehold.co/40x40/FFDDC1/FF6B35?text=U" width="40" />
                 <p class="ml-2 whitespace-nowrap text-orange-500 font-klee text-2xl">うちあけ</p>
             </a>
         </h1>
         <div class="grow"></div>
         <nav class="flex items-center gap-4 sm:gap-6">
-            <a href="#" class="relative text-gray-600 hover:text-orange-500 transition notification-bell" data-count="3" title="通知">
+            <a href="notification" class="relative text-gray-600 hover:text-orange-500 transition notification-bell" data-count="3" title="通知">
                 <i class="fas fa-bell text-2xl"></i>
             </a>
-            <a href="#my-page-content" class="flex items-center gap-2 hover:opacity-80 transition" title="マイページ">
+            <a href="profile" class="flex items-center gap-2 hover:opacity-80 transition" title="マイページ">
                 <img src="https://placehold.co/40x40/a7f3d0/166534?text=A" alt="プロフィール画像" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-orange-200">
                 <span class="hidden sm:inline font-semibold text-gray-700">あなたさん</span>
             </a>
@@ -77,7 +77,7 @@
         
         <!-- パンくずリスト -->
         <nav class="text-sm mb-4">
-            <a href="#" class="text-blue-600 hover:underline">コミュニティ一覧</a>
+            <a href="community" class="text-blue-600 hover:underline">コミュニティ一覧</a>
             <span class="mx-2 text-gray-400">&gt;</span>
             <span class="text-gray-600">関節リウマチ</span>
         </nav>
@@ -114,7 +114,7 @@
         
         <!-- 新規トピック作成ボタン -->
         <section class="mb-8">
-            <a href="#" class="block w-full bg-orange-500 text-white font-bold py-4 px-6 rounded-full transition shadow-lg hover:bg-orange-600 text-center text-lg">
+            <a href="new/topic" class="block w-full bg-orange-500 text-white font-bold py-4 px-6 rounded-full transition shadow-lg hover:bg-orange-600 text-center text-lg">
                 <i class="fas fa-plus-circle mr-2"></i>新しいトピックを作成して話してみる
             </a>
         </section>
@@ -131,7 +131,7 @@
 
             <div class="space-y-4">
                 <!-- トピックカードの例 1 -->
-                <a href="#" class="block topic-card bg-white p-5 rounded-xl shadow-md">
+                <a href="topic-detail" class="block topic-card bg-white p-5 rounded-xl shadow-md">
                     <div class="flex items-start">
                         <img src="https://placehold.co/40x40/fde68a/854d0e?text=さ" alt="さとうさんのプロフィール画像" class="w-10 h-10 rounded-full mr-4">
                         <div class="flex-grow">
@@ -150,7 +150,7 @@
                     </div>
                 </a>
                 <!-- トピックカードの例 2 -->
-                <a href="#" class="block topic-card bg-white p-5 rounded-xl shadow-md">
+                <a href="topic-detail" class="block topic-card bg-white p-5 rounded-xl shadow-md">
                     <div class="flex items-start">
                         <img src="https://placehold.co/40x40/bae6fd/0c4a6e?text=田" alt="田中さんのプロフィール画像" class="w-10 h-10 rounded-full mr-4">
                         <div class="flex-grow">
@@ -164,7 +164,7 @@
                     </div>
                 </a>
                  <!-- トピックカードの例 3 -->
-                <a href="#" class="block topic-card bg-white p-5 rounded-xl shadow-md">
+                <a href="topic-detail" class="block topic-card bg-white p-5 rounded-xl shadow-md">
                     <div class="flex items-start">
                         <img src="https://placehold.co/40x40/d1fae5/064e3b?text=鈴" alt="鈴木さんのプロフィール画像" class="w-10 h-10 rounded-full mr-4">
                         <div class="flex-grow">
