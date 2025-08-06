@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>プロフィール設定 - うちあけ</title>
+    <!-- Fonts and Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&family=Klee+One&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #f8fafc; /* bg-slate-50 */
+        }
+        .font-klee-one {
+            font-family: 'Klee One', cursive;
+        }
+        .notification-bell::after {
+            content: attr(data-count);
+            position: absolute;
+            top: -4px;
+            right: -6px;
+            width: 18px;
+            height: 18px;
+            background-color: #ef4444;
+            color: white;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+        }
+        .setting-card h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        /* Toggle switch style */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #f97316;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #f97316;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- ヘッダー (ログイン後) -->
+    <header class="fixed top-0 w-full z-40 flex items-center justify-between px-4 py-2 bg-white shadow-md">
+        <h1 class="flex justify-start text-xl font-bold">
+            <a class="flex items-center text-gray-800" href="profile">
+                <img alt="うちあけ ロゴ" class="rounded-full shadow-sm" height="40" src="https://placehold.co/40x40/FFDDC1/FF6B35?text=U" width="40" />
+                <p class="ml-2 whitespace-nowrap text-orange-500 font-klee-one text-2xl">うちあけ</p>
+            </a>
+        </h1>
+        <div class="grow"></div>
+        <nav class="flex items-center gap-4 sm:gap-6">
+            <a href="notification" class="relative text-gray-600 hover:text-orange-500 transition notification-bell" data-count="2" title="通知">
+                <i class="fas fa-bell text-2xl"></i>
+            </a>
+            <a href="profile" class="flex items-center gap-2 hover:opacity-80 transition" title="マイページ">
+                <img src="https://placehold.co/40x40/a7f3d0/166534?text=A" alt="プロフィール画像" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-orange-200">
+                <span class="hidden sm:inline font-semibold text-gray-700">あなたさん</span>
+            </a>
+        </nav>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="pt-[68px] pb-24">
+        <div class="container mx-auto max-w-3xl px-4 py-8">
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-8">プロフィール設定</h1>
+
+            <!-- 基本プロフィール -->
+            <section class="setting-card bg-white rounded-xl shadow-lg p-6 sm:p-8 mb-8">
+                <h2 class="mb-6">基本プロフィール</h2>
+                <div class="space-y-6">
+                    <!-- プロフィール画像 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">プロフィール画像</label>
+                        <div class="flex items-center gap-4">
+                            <img src="https://placehold.co/80x80/a7f3d0/166534?text=A" alt="現在のプロフィール画像" class="w-20 h-20 rounded-full">
+                            <button class="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-full hover:bg-gray-300 transition text-sm">
+                                <i class="fas fa-camera mr-2"></i>画像を変更
+                            </button>
+                        </div>
+                    </div>
+                    <!-- ニックネーム -->
+                    <div>
+                        <label for="nickname" class="block text-sm font-semibold text-gray-700 mb-2">ニックネーム</label>
+                        <input type="text" id="nickname" value="あなたさん" class="w-full max-w-sm p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400">
+                    </div>
+                    <!-- 自己紹介 -->
+                    <div>
+                        <label for="bio" class="block text-sm font-semibold text-gray-700 mb-2">自己紹介</label>
+                        <textarea id="bio" rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400" placeholder="同じ悩みを持つ方に向けて自己紹介を書きましょう">ここに自己紹介文が入ります。同じ悩みを持つ方と情報交換したいです。よろしくお願いします。</textarea>
+                    </div>
+                </div>
+                <div class="text-right mt-6">
+                    <button class="bg-orange-500 text-white font-bold py-2 px-6 rounded-full hover:bg-orange-600 transition shadow">更新する</button>
+                </div>
+            </section>
+
+            <!-- ログインと連携 -->
+            <section class="setting-card bg-white rounded-xl shadow-lg p-6 sm:p-8 mb-8">
+                <h2 class="mb-6">ログインと連携</h2>
+                <div class="space-y-6">
+                    <!-- メールアドレスとパスワード -->
+                    <div>
+                        <p class="text-sm font-semibold text-gray-700">メールアドレスでログイン中</p>
+                        <div class="flex flex-col sm:flex-row justify-between items-center mt-2">
+                            <p class="text-gray-600">user@example.com</p>
+                            <button class="w-full sm:w-auto mt-2 sm:mt-0 bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-full hover:bg-gray-300 transition text-sm">パスワードを変更</button>
+                        </div>
+                    </div>
+                    <!-- Google連携 -->
+                    <div class="pt-6 border-t">
+                         <p class="text-sm font-semibold text-gray-700 mb-2">ソーシャル連携</p>
+                         <div class="flex flex-col sm:flex-row justify-between items-center">
+                            <div class="flex items-center">
+                                <i class="fab fa-google text-2xl text-red-500 mr-3 w-6 text-center"></i>
+                                <div>
+                                    <p class="font-semibold text-gray-800">Google</p>
+                                    <p class="text-xs text-gray-500">連携されていません</p>
+                                </div>
+                            </div>
+                            <button class="w-full sm:w-auto mt-2 sm:mt-0 bg-blue-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-blue-600 transition text-sm">連携する</button>
+                        </div>
+                    </div>
+                    <!-- LINE連携 -->
+                    <div class="pt-4 mt-4 border-t">
+                         <div class="flex flex-col sm:flex-row justify-between items-center">
+                            <div class="flex items-center">
+                                <i class="fab fa-line text-2xl text-green-500 mr-3 w-6 text-center"></i>
+                                <div>
+                                    <p class="font-semibold text-gray-800">LINE</p>
+                                    <p class="text-xs text-gray-500">連携済み</p>
+                                </div>
+                            </div>
+                            <button class="w-full sm:w-auto mt-2 sm:mt-0 bg-red-100 text-red-700 font-semibold py-2 px-4 rounded-full hover:bg-red-200 transition text-sm">連携を解除</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 通知設定 -->
+            <section class="setting-card bg-white rounded-xl shadow-lg p-6 sm:p-8 mb-8">
+                <h2 class="mb-6">通知設定</h2>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="font-semibold text-gray-700">共感があった時</p>
+                            <p class="text-xs text-gray-500">あなたの投稿やコメントに共感がついた時に通知します。</p>
+                        </div>
+                        <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="toggle" id="toggle-empathy" class="toggle-checkbox absolute block w-7 h-7 rounded-full bg-white border-4 appearance-none cursor-pointer" checked/>
+                            <label for="toggle-empathy" class="toggle-label block overflow-hidden h-7 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center pt-4 border-t">
+                        <div>
+                            <p class="font-semibold text-gray-700">コメントがあった時</p>
+                            <p class="text-xs text-gray-500">あなたの投稿にコメントがついた時に通知します。</p>
+                        </div>
+                        <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="toggle" id="toggle-comment" class="toggle-checkbox absolute block w-7 h-7 rounded-full bg-white border-4 appearance-none cursor-pointer" checked/>
+                            <label for="toggle-comment" class="toggle-label block overflow-hidden h-7 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                    </div>
+                     <div class="flex justify-between items-center pt-4 border-t">
+                        <div>
+                            <p class="font-semibold text-gray-700">返信があった時</p>
+                            <p class="text-xs text-gray-500">あなたのコメントに返信がついた時に通知します。</p>
+                        </div>
+                        <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="toggle" id="toggle-reply" class="toggle-checkbox absolute block w-7 h-7 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                            <label for="toggle-reply" class="toggle-label block overflow-hidden h-7 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center pt-4 border-t">
+                        <div>
+                            <p class="font-semibold text-gray-700">運営からのお知らせ</p>
+                            <p class="text-xs text-gray-500">メンテナンスや重要なお知らせを通知します。</p>
+                        </div>
+                         <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="toggle" id="toggle-admin" class="toggle-checkbox absolute block w-7 h-7 rounded-full bg-white border-4 appearance-none cursor-pointer" checked/>
+                            <label for="toggle-admin" class="toggle-label block overflow-hidden h-7 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 危険ゾーン -->
+            <section class="setting-card bg-white rounded-xl shadow-lg p-6 sm:p-8 border-2 border-red-300">
+                 <h2 class="mb-6 text-red-600">その他</h2>
+                 <div class="flex flex-col sm:flex-row justify-between items-center">
+                    <div>
+                        <p class="font-semibold text-gray-800">退会手続き</p>
+                        <p class="text-sm text-gray-600 mt-1">アカウントを削除すると、すべてのデータが消去され、復元できません。</p>
+                    </div>
+                    <button class="w-full sm:w-auto mt-3 sm:mt-0 bg-red-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-red-600 transition text-sm">退会する</button>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- フッター -->
+    <footer class="mt-8 bg-gray-100 py-6 sm:py-8 text-gray-800">
+        <div class="text-center text-xs sm:text-sm text-gray-500">&copy; 2025 うちあけ All rights reserved.</div>
+    </footer>
+
+</body>
+</html>
