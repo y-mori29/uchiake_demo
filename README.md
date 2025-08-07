@@ -2,11 +2,11 @@
 うちあけのhtmlでのデモページです。
 各ボタンを押すと、画面遷移するようにしています。
 
-8/6時点で実装済みのページ
-ログイン前ページ（index）
-ログイン後ページ/マイページ（profile）
-ガイドライン（guideline）
-投稿（new/form）
+8/6時点で実装済みのページ<br>
+ログイン前ページ（index）<br>
+ログイン後ページ/マイページ（profile）<br>
+ガイドライン（guideline）<br>
+投稿（new/form）<br>
 投稿閲覧/検索※アカウント登録前（search）
 投稿閲覧/検索※アカウント登録後（search-user）
 通知（notification）
