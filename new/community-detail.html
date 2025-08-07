@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>関節リウマチ コミュニティ - うちあけ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Klee+One&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #f7f8fa;
+        }
+        .font-klee {
+            font-family: 'Klee One', cursive;
+        }
+        .topic-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .topic-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        }
+        .notification-bell::after {
+            content: attr(data-count);
+            position: absolute;
+            top: -4px;
+            right: -6px;
+            width: 18px;
+            height: 18px;
+            background-color: #ef4444; /* red-500 */
+            color: white;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+        }
+        .topic-sort-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .topic-sort-btn.active {
+            background-color: #f97316;
+            color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="text-gray-700">
+
+    <!-- ヘッダー (ログイン後) -->
+    <header class="sticky top-0 w-full z-40 flex items-center justify-between px-4 py-2 bg-white shadow-md">
+        <h1 class="flex justify-start text-xl font-bold">
+            <a class="flex items-center text-gray-800" href="profile">
+                <img alt="うちあけ ロゴ" class="rounded-full shadow-sm" height="40" src="https://placehold.co/40x40/FFDDC1/FF6B35?text=U" width="40" />
+                <p class="ml-2 whitespace-nowrap text-orange-500 font-klee text-2xl">うちあけ</p>
+            </a>
+        </h1>
+        <div class="grow"></div>
+        <nav class="flex items-center gap-4 sm:gap-6">
+            <a href="notification" class="relative text-gray-600 hover:text-orange-500 transition notification-bell" data-count="3" title="通知">
+                <i class="fas fa-bell text-2xl"></i>
+            </a>
+            <a href="profile" class="flex items-center gap-2 hover:opacity-80 transition" title="マイページ">
+                <img src="https://placehold.co/40x40/a7f3d0/166534?text=A" alt="プロフィール画像" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-orange-200">
+                <span class="hidden sm:inline font-semibold text-gray-700">あなたさん</span>
+            </a>
+        </nav>
+    </header>
+
+    <main class="container mx-auto max-w-4xl p-4 sm:p-6">
+        
+        <!-- パンくずリスト -->
+        <nav class="text-sm mb-4">
+            <a href="community" class="text-blue-600 hover:underline">コミュニティ一覧</a>
+            <span class="mx-2 text-gray-400">&gt;</span>
+            <span class="text-gray-600">関節リウマチ</span>
+        </nav>
+
+        <!-- コミュニティヘッダー -->
+        <section class="mb-8">
+            <div class="bg-white p-6 rounded-2xl shadow-lg">
+                <div class="flex flex-col sm:flex-row items-start gap-6">
+                    <img src="https://placehold.co/80x80/fecaca/991b1b?text=関" class="w-20 h-20 rounded-xl shrink-0" alt="関節リウマチコミュニティのアイコン">
+                    <div class="flex-grow">
+                        <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">関節リウマチ</h1>
+                        <p class="mt-2 text-gray-600 text-sm">日々の痛みや治療のこと、情報交換しませんか？同じ悩みを持つ仲間が待っています。</p>
+                        <div class="flex items-center text-gray-500 text-sm mt-3">
+                            <i class="fas fa-user-friends mr-2"></i> <strong>350人</strong>が参加中
+                        </div>
+                    </div>
+                    <div class="w-full sm:w-auto shrink-0 flex flex-col items-stretch gap-2">
+                        <button class="w-full bg-green-100 text-green-800 font-bold py-2 px-5 rounded-full text-sm transition hover:bg-green-200">
+                            <i class="fas fa-check mr-2"></i>参加中
+                        </button>
+                         <button class="w-full text-gray-500 hover:text-red-600 text-xs text-center transition">コミュニティを退会する</button>
+                    </div>
+                </div>
+                <div class="mt-6 pt-4 border-t border-gray-200 bg-gray-50 p-4 rounded-lg">
+                    <h3 class="font-bold text-sm text-gray-700 mb-2 flex items-center"><i class="fas fa-scroll mr-2 text-orange-500"></i>このコミュニティのルール</h3>
+                    <ul class="list-disc list-inside text-xs text-gray-600 space-y-1">
+                        <li>お互いの意見を尊重し、思いやりのある言葉を使いましょう。</li>
+                        <li>個人情報の交換や、他のSNSへの誘導は禁止です。</li>
+                        <li>医療に関する断定的な表現や、未承認の治療法を推奨する行為はお控えください。</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 新規トピック作成ボタン -->
+        <section class="mb-8">
+            <a href="new/topic" class="block w-full bg-orange-500 text-white font-bold py-4 px-6 rounded-full transition shadow-lg hover:bg-orange-600 text-center text-lg">
+                <i class="fas fa-plus-circle mr-2"></i>新しいトピックを作成して話してみる
+            </a>
+        </section>
+
+        <!-- トピック一覧 -->
+        <section>
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-gray-800">トピック一覧</h2>
+                <div class="flex items-center gap-2 mt-4 sm:mt-0 bg-gray-100 p-1 rounded-full">
+                    <button class="topic-sort-btn active text-sm font-semibold py-2 px-4 rounded-full" data-sort="new">新着順</button>
+                    <button class="topic-sort-btn text-sm font-semibold py-2 px-4 rounded-full text-gray-600" data-sort="hot">コメントの多い順</button>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <!-- トピックカードの例 1 -->
+                <a href="topic-detail" class="block topic-card bg-white p-5 rounded-xl shadow-md">
+                    <div class="flex items-start">
+                        <img src="https://placehold.co/40x40/fde68a/854d0e?text=さ" alt="さとうさんのプロフィール画像" class="w-10 h-10 rounded-full mr-4">
+                        <div class="flex-grow">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="font-bold text-lg text-gray-800 mb-1">新しい治療薬の使い心地について</h3>
+                                    <p class="text-xs text-gray-500">さとうさん・1時間前</p>
+                                </div>
+                                <span class="text-sm bg-red-100 text-red-800 font-semibold px-2 py-1 rounded-full shrink-0 ml-2">HOT</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-2 line-clamp-2">最近、新しい生物学的製剤に変更しました。同じ薬を使っている方、効果や副作用について情報交換できませんか？特に、注射後のだるさが気になっています。</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-end items-center text-gray-500 text-sm mt-3 pt-3 border-t border-gray-100">
+                        <i class="fas fa-comments mr-2"></i> 28件のコメント
+                    </div>
+                </a>
+                <!-- トピックカードの例 2 -->
+                <a href="topic-detail" class="block topic-card bg-white p-5 rounded-xl shadow-md">
+                    <div class="flex items-start">
+                        <img src="https://placehold.co/40x40/bae6fd/0c4a6e?text=田" alt="田中さんのプロフィール画像" class="w-10 h-10 rounded-full mr-4">
+                        <div class="flex-grow">
+                             <h3 class="font-bold text-lg text-gray-800 mb-1">雨の日の痛み、どうしてますか？</h3>
+                             <p class="text-xs text-gray-500">田中さん・昨日</p>
+                             <p class="text-sm text-gray-600 mt-2 line-clamp-2">低気圧が近づくと、決まって関節が痛みます…。皆さんはどんな対策をしていますか？温めるのが良いのか、それとも軽いストレッチが良いのか、おすすめがあれば教えてほしいです。</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-end items-center text-gray-500 text-sm mt-3 pt-3 border-t border-gray-100">
+                        <i class="fas fa-comments mr-2"></i> 15件のコメント
+                    </div>
+                </a>
+                 <!-- トピックカードの例 3 -->
+                <a href="topic-detail" class="block topic-card bg-white p-5 rounded-xl shadow-md">
+                    <div class="flex items-start">
+                        <img src="https://placehold.co/40x40/d1fae5/064e3b?text=鈴" alt="鈴木さんのプロフィール画像" class="w-10 h-10 rounded-full mr-4">
+                        <div class="flex-grow">
+                             <h3 class="font-bold text-lg text-gray-800 mb-1">【雑談】最近ハマっていること</h3>
+                             <p class="text-xs text-gray-500">鈴木さん・3日前</p>
+                             <p class="text-sm text-gray-600 mt-2 line-clamp-2">治療の話も大事ですが、たまには息抜きも。皆さんが最近ハマっている趣味や、見て面白かったドラマなど、なんでも気軽に話しましょう！</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-end items-center text-gray-500 text-sm mt-3 pt-3 border-t border-gray-100">
+                        <i class="fas fa-comments mr-2"></i> 42件のコメント
+                    </div>
+                </a>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sortButtons = document.querySelectorAll('.topic-sort-btn');
+            sortButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    sortButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    // ここにソート処理を実装します
+                    const sortBy = button.dataset.sort;
+                    console.log('Sorting by:', sortBy);
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>

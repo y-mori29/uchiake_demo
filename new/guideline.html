@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>コミュニティ 安心安全ガイドライン - うちあけ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Klee+One&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #f7f8fa;
+        }
+        .font-klee {
+            font-family: 'Klee One', cursive;
+        }
+        .notification-bell::after {
+            content: attr(data-count);
+            position: absolute;
+            top: -4px;
+            right: -6px;
+            width: 18px;
+            height: 18px;
+            background-color: #ef4444; /* red-500 */
+            color: white;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+        }
+        .guideline-section {
+            background-color: white;
+            padding: 1.5rem 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+            margin-bottom: 2.5rem;
+        }
+        .guideline-section h2 {
+            font-size: 1.75rem; /* text-2xl */
+            font-weight: 700;
+            color: #4b5563; /* gray-600 */
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #f3f4f6; /* gray-100 */
+            display: flex;
+            align-items: center;
+        }
+        @media (min-width: 640px) {
+            .guideline-section h2 {
+                font-size: 2rem; /* text-3xl on sm screens */
+            }
+        }
+        .guideline-section h2 .icon {
+            color: #f97316; /* orange-500 */
+            margin-right: 0.75rem;
+        }
+    </style>
+</head>
+<body class="text-gray-700">
+
+    <!-- ヘッダー (ログイン後) -->
+    <header class="sticky top-0 w-full z-40 flex items-center justify-between px-4 py-2 bg-white shadow-md">
+        <h1 class="flex justify-start text-xl font-bold">
+            <a class="flex items-center text-gray-800" href="profile">
+                <img alt="うちあけ ロゴ" class="rounded-full shadow-sm" height="40" src="https://placehold.co/40x40/FFDDC1/FF6B35?text=U" width="40" />
+                <p class="ml-2 whitespace-nowrap text-orange-500 font-klee text-2xl">うちあけ</p>
+            </a>
+        </h1>
+        <div class="grow"></div>
+        <nav class="flex items-center gap-4 sm:gap-6">
+            <a href="notification" class="relative text-gray-600 hover:text-orange-500 transition notification-bell" data-count="3" title="通知">
+                <i class="fas fa-bell text-2xl"></i>
+            </a>
+            <a href="profile" class="flex items-center gap-2 hover:opacity-80 transition" title="マイページ">
+                <img src="https://placehold.co/40x40/a7f3d0/166534?text=A" alt="プロフィール画像" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-orange-200">
+                <span class="hidden sm:inline font-semibold text-gray-700">あなたさん</span>
+            </a>
+        </nav>
+    </header>
+
+    <main class="container mx-auto max-w-3xl p-4 sm:p-6">
+        
+        <!-- ページタイトル -->
+        <div class="text-center my-8 sm:my-12">
+            <i class="fas fa-shield-halved text-5xl text-blue-500 mb-4"></i>
+            <h1 class="text-3xl sm:text-5xl font-bold text-gray-800 leading-tight">コミュニティ<br>安心安全ガイドライン</h1>
+            <p class="mt-6 text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                ここは、同じ悩みを抱える仲間と支え合う大切な場所です。<br>
+                みんなが心地よく過ごせる「居場所」を一緒に育んでいくために、ご一読ください。
+            </p>
+        </div>
+
+        <!-- 3つの約束 -->
+        <section class="guideline-section bg-amber-50 border-t-4 border-amber-400">
+             <h2 class="border-amber-100"><i class="icon fas fa-hands-holding-child"></i>はじめに：大切にしたい「3つの約束」</h2>
+             <div class="space-y-6">
+                <div class="flex items-start gap-4">
+                    <div class="text-3xl text-amber-600 pt-1"><i class="fas fa-hand-holding-heart"></i></div>
+                    <div>
+                        <h3 class="font-bold text-xl text-amber-800">① 相手を思いやる</h3>
+                        <p class="text-base text-gray-700 mt-1 leading-relaxed">画面の向こうには、あなたと同じように様々な想いを抱えた人がいます。温かい言葉で、お互いを尊重しましょう。</p>
+                    </div>
+                </div>
+                 <div class="flex items-start gap-4">
+                    <div class="text-3xl text-amber-600 pt-1"><i class="fas fa-comment-dots"></i></div>
+                    <div>
+                        <h3 class="font-bold text-xl text-amber-800">② 決めつけない、押し付けない</h3>
+                        <p class="text-base text-gray-700 mt-1 leading-relaxed">病状や治療法、価値観は人それぞれです。「こうすべき」と決めつけず、一つの「体験談」として共有し合いましょう。</p>
+                    </div>
+                </div>
+                 <div class="flex items-start gap-4">
+                    <div class="text-3xl text-amber-600 pt-1"><i class="fas fa-user-shield"></i></div>
+                    <div>
+                        <h3 class="font-bold text-xl text-amber-800">③ 安心して話せる場所に</h3>
+                        <p class="text-base text-gray-700 mt-1 leading-relaxed">ここは誰もが主役になれる安全な場所です。個人情報を書いたり、他の人が不安になるような投稿は避けましょう。</p>
+                    </div>
+                </div>
+             </div>
+        </section>
+
+        <!-- 心地よく過ごすために -->
+        <section class="guideline-section">
+            <h2><i class="icon fas fa-people-group"></i>コミュニティで心地よく過ごすために</h2>
+            <div class="space-y-4 text-base text-gray-700 leading-relaxed">
+                <p>私たちは、このコミュニティが皆さまにとって、温かく、居心地の良い「居場所」でありたいと願っています。</p>
+                <div class="bg-green-50 p-5 rounded-xl border border-green-200">
+                    <h4 class="font-bold text-green-800 mb-2 text-lg"><i class="fas fa-check-circle mr-2"></i>こんな投稿やコメントを歓迎します</h4>
+                    <ul class="list-disc list-inside text-base text-green-900 space-y-2">
+                        <li>ご自身の治療や生活での「工夫」や「発見」の共有</li>
+                        <li>他のメンバーへの「共感」や「励まし」の言葉</li>
+                        <li>純粋な疑問や、誰かに聞いてほしい「不安な気持ち」</li>
+                        <li>感謝の気持ちを伝える「ありがとう」のメッセージ</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 安心のためのルール -->
+        <section class="guideline-section">
+            <h2><i class="icon fas fa-ban"></i>皆の安心のためのルール（禁止事項）</h2>
+            <p class="text-base text-gray-600 mb-6 leading-relaxed">これらの行為が確認された場合、投稿の削除やアカウントの一時停止などの措置を取らせていただくことがあります。</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8">
+                <div class="flex items-start gap-3"><i class="fas fa-comment-slash text-2xl text-red-500 mt-1"></i><div><h4 class="font-semibold text-lg">誹謗中傷・攻撃</h4><p class="text-sm text-gray-500 leading-relaxed">悪口、脅迫、いやがらせ、差別的な発言</p></div></div>
+                <div class="flex items-start gap-3"><i class="fas fa-user-secret text-2xl text-red-500 mt-1"></i><div><h4 class="font-semibold text-lg">個人情報の投稿</h4><p class="text-sm text-gray-500 leading-relaxed">氏名、住所、連絡先、SNSアカウントなど</p></div></div>
+                <div class="flex items-start gap-3"><i class="fas fa-handshake-slash text-2xl text-red-500 mt-1"></i><div><h4 class="font-semibold text-lg">出会い目的の行為</h4><p class="text-sm text-gray-500 leading-relaxed">連絡先の交換や会うことを提案する行為</p></div></div>
+                <div class="flex items-start gap-3"><i class="fas fa-bullhorn text-2xl text-red-500 mt-1"></i><div><h4 class="font-semibold text-lg">営利目的・勧誘</h4><p class="text-sm text-gray-500 leading-relaxed">商品の宣伝、宗教や団体への勧誘</p></div></div>
+                <div class="flex items-start gap-3"><i class="fas fa-notes-medical text-2xl text-red-500 mt-1"></i><div><h4 class="font-semibold text-lg">断定的な医療情報</h4><p class="text-sm text-gray-500 leading-relaxed">「絶対治る」などの表現、未承認治療の推奨</p></div></div>
+                <div class="flex items-start gap-3"><i class="fas fa-copy text-2xl text-red-500 mt-1"></i><div><h4 class="font-semibold text-lg">著作権の侵害</h4><p class="text-sm text-gray-500 leading-relaxed">他サイトの記事や画像の無断転載</p></div></div>
+            </div>
+        </section>
+
+        <!-- Q&A -->
+        <section class="guideline-section">
+            <h2><i class="icon fas fa-question-circle"></i>困ったときのQ&A</h2>
+            <div class="space-y-8">
+                <div>
+                    <h4 class="font-bold text-lg text-gray-800">Q. 意見が違うときはどうすればいい？</h4>
+                    <p class="text-base text-gray-700 mt-2 border-l-4 border-gray-200 pl-4 leading-relaxed">A. まずは相手の意見を尊重しましょう。その上で、「私の場合はこうでした」と、ご自身の体験として伝える形での返信を心がけてください。相手を言い負かしたり、論破したりする場所ではありません。</p>
+                </div>
+                 <div>
+                    <h4 class="font-bold text-lg text-gray-800">Q. 不快な投稿を見つけたら？</h4>
+                    <p class="text-base text-gray-700 mt-2 border-l-4 border-gray-200 pl-4 leading-relaxed">A. 直接反論したり、注意したりせず、各投稿に設置されている「通報ボタン」から運営までそっとお知らせください。感情的な言い争いは、さらなるトラブルの原因になります。</p>
+                </div>
+                 <div>
+                    <h4 class="font-bold text-lg text-gray-800">Q. 間違っているかもしれない医療情報を見つけたら？</h4>
+                    <p class="text-base text-gray-700 mt-2 border-l-4 border-gray-200 pl-4 leading-relaxed">A. こちらも同様に「通報ボタン」からお知らせください。また、「私の主治医からはこのように聞いています」と、ご自身の体験としてやわらかく情報提供することも一つの方法ですが、決して相手を強く否定しないようにしましょう。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 運営の役割 -->
+        <section class="guideline-section">
+            <h2><i class="icon fas fa-user-nurse"></i>運営の役割と皆さまへのお願い</h2>
+             <div class="space-y-4 text-base text-gray-700 leading-relaxed">
+                <div class="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+                    <i class="fas fa-binoculars text-2xl text-gray-500 mt-1"></i>
+                    <div><h4 class="font-semibold text-lg">運営スタッフもコミュニティを見守っています</h4><p>皆さまが安心して利用できるよう、運営スタッフも定期的にコミュニティを巡回しています。ガイドラインに違反する投稿があった場合、予告なく削除や編集を行うことがあります。</p></div>
+                </div>
+                 <div class="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+                    <i class="fas fa-hospital-user text-2xl text-gray-500 mt-1"></i>
+                    <div><h4 class="font-semibold text-lg">専門的な判断は、必ず医師へ</h4><p>コミュニティでの情報は、あくまで個人の体験談です。医学的なアドバイスではありません。治療や薬に関する主な判断は、必ずかかりつけの医師や薬剤師にご相談ください。</p></div>
+                </div>
+                 <div class="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+                    <i class="fas fa-seedling text-2xl text-gray-500 mt-1"></i>
+                    <div><h4 class="font-semibold text-lg">一緒に、この場所を育てていきましょう</h4><p>このコミュニティは、運営スタッフだけではなく、参加してくださるユーザーの皆さま一人ひとりの思いやりによって成り立っています。温かく、居心地の良い場所を一緒に育んでいけるよう、ご協力をお願いいたします。</p></div>
+                </div>
+             </div>
+        </section>
+        
+        <div class="text-center text-sm text-gray-500 mt-8">
+            <p>最終更新日: 2025年7月30日</p>
+            <p>株式会社メディキャンバス</p>
+        </div>
+
+    </main>
+
+</body>
+</html>
