@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>うちあけ プロトタイプ V6.9 FINAL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Klee+One&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <style>
+        body { font-family: 'Noto Sans JP', sans-serif; background-color: #f7f8fa; }
+        .font-klee { font-family: 'Klee One', cursive; }
+        .screen { display: none; animation: fadeIn 0.5s ease-in-out; }
+        .screen.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .modal-overlay { 
+            opacity: 0; 
+            visibility: hidden; 
+            transition: opacity 0.3s ease-in-out; 
+            overflow-y: auto; /* Allow overlay to scroll on small screens */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content { 
+            transform: translateY(20px) scale(0.95); 
+            opacity: 0; 
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease-in-out;
+            max-height: 90vh; /* Ensure modal content doesn't exceed viewport height */
+            overflow-y: auto; /* Allow modal content to scroll if it overflows */
+        }
+        .modal-overlay.active .modal-content { transform: translateY(0) scale(1); opacity: 1; }
+        .category-btn, .purpose-card { transition: all 0.2s ease-in-out; }
+        .category-btn:hover, .purpose-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
+        .category-btn.selected { border-color: #f97316; background-color: #fff7ed; color: #f97316; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2); }
+        .category-btn.suggested { border-color: #3b82f6; background-color: #eff6ff; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2); }
+        .category-btn.dimmed { opacity: 0.3; }
+        .disease-example-item { display: inline-block; background-color: #e0f2f7; color: #2a658c; padding: 0.3rem 0.8rem; border-radius: 9999px; font-size: 0.8rem; margin: 0.25rem; border: 1px solid #b3e5fc; }
+        #ai-status { transition: opacity 0.3s; }
+        .btn-primary { background-color: #f97316; color: white; }
+        .btn-primary:hover { background-color: #ea580c; }
+        .btn-primary:disabled { background-color: #fdba74; cursor: not-allowed; }
+        .btn-secondary { background-color: #e5e7eb; color: #374151; }
+        .btn-secondary:hover { background-color: #d1d5db; }
+        .btn-green { background-color: #10b981; color: white; }
+        .btn-green:hover { background-color: #059669; }
+        .mood-selector .mood-btn { transition: all 0.2s ease-in-out; }
+        .mood-selector .mood-btn.selected { transform: scale(1.2); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5); }
+        .ai-suggestion { display: none; animation: fadeIn 0.5s; }
+        .dynamic-form-field { animation: fadeIn 0.5s; }
+        
+        /* Styles for Integrated My Page */
+        .feed-tab { transition: all 0.3s ease; border-bottom: 3px solid transparent; padding-bottom: 0.75rem; }
+        .feed-tab.active { color: #f97316; border-bottom-color: #f97316; }
+        .mypage-sub-tab { transition: all 0.2s ease; border-bottom: 2px solid transparent; }
+        .mypage-sub-tab.active { color: #ea580c; border-bottom-color: #ea580c; }
+        .profile-card { background-color: #fff; }
+        .stat-item .stat-value { color: #f97316; }
+        .main-tab-content.hidden, .mypage-sub-content.hidden { display: none; }
+        .post-card-icon { width: 1.25rem; height: 1.25rem; margin-right: 0.25rem; }
+        .progress-bar { background-color: #e5e7eb; }
+        .progress-bar-inner { background-color: #f97316; transition: width 0.5s ease-in-out; }
+        .supporter-condition.completed .action-btn { background-color: #d1fae5; color: #065f46; cursor: default; }
+    </style>
+</head>
+<body class="text-gray-700">
+
+    <div id="app-container" class="container mx-auto max-w-4xl p-4 sm:p-6">
+
+        <!-- ===== 画面0: カテゴリ選択 ===== -->
+        <div id="screen-category-selection" class="screen active">
+            <div class="text-center mb-8">
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">新しい投稿</h1>
+                <p class="mt-3 text-gray-600">あなたの「うちあけ話」のカテゴリを教えてください。</p>
+            </div>
+            <div class="mb-6 relative">
+                <input type="search" id="category-search" placeholder="症状や疾患名でカテゴリを探します (例: 頭痛、がん)" class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-orange-400">
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <div id="ai-status" class="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-blue-600 opacity-0">
+                    <i class="fas fa-robot fa-spin-pulse mr-1"></i>分析中...
+                </div>
+            </div>
+            <p class="text-xs text-gray-500 text-center -mt-4 mb-6">※本機能は医療的な診断を行うものではなく、入力内容から関連する可能性のあるカテゴリを提案します。</p>
+            <div id="category-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+            <div id="disease-examples-container" class="mt-6 p-4 bg-white rounded-xl shadow-inner border border-gray-200" style="display: none;">
+                <h3 class="font-bold text-gray-800 mb-2">疾患例:</h3>
+                <div id="disease-examples-list" class="flex flex-wrap gap-2"></div>
+            </div>
+            <div class="mt-8 flex justify-center">
+                <button id="confirm-category-btn" disabled class="btn-primary font-bold py-3 px-8 rounded-full transition shadow-md">次へ進む</button>
+            </div>
+            <div class="mt-12 text-center">
+                 <button id="open-promise-modal-from-category" class="text-sm text-blue-600 hover:underline"><i class="fas fa-shield-halved mr-1"></i>うちあけの３つのお約束</button>
+            </div>
+        </div>
+
+        <!-- ===== 画面1: 目的選択 ===== -->
+        <div id="screen-purpose-selection" class="screen">
+            <div class="text-center mb-10">
+                <button class="nav-link text-gray-500 hover:text-orange-500 mb-4" data-target="screen-category-selection">&larr; カテゴリ選択に戻る</button>
+                <h1 id="purpose-title" class="text-2xl sm:text-3xl font-bold text-gray-800"></h1>
+                <p class="mt-3 text-gray-600">どのような目的で投稿しますか？</p>
+            </div>
+            <div class="space-y-6 max-w-2xl mx-auto">
+                <div class="purpose-card cursor-pointer bg-white p-6 rounded-2xl shadow-lg border border-transparent hover:border-orange-300" data-flow="talk">
+                    <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 text-center sm:text-left">
+                        <div class="flex-shrink-0">
+                            <img src="https://placehold.co/80x80/ecfccb/4d7c0f?text=話す" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full" alt="話す・共感のイラスト">
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-800 font-klee">病気や症状のつらさを話す</h2>
+                            <p class="text-gray-600 mt-1 text-sm">つらい症状や心のモヤモヤを言葉にして、誰かと共感したい、気持ちを整理したい時に。</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="purpose-card cursor-pointer bg-white p-6 rounded-2xl shadow-lg border border-transparent hover:border-teal-300" data-flow="record">
+                     <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 text-center sm:text-left">
+                        <div class="flex-shrink-0">
+                            <img src="https://placehold.co/80x80/d1fae5/065f46?text=記録" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full" alt="記録・整理のイラスト">
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-800 font-klee">自分のために記録する</h2>
+                            <p class="text-gray-600 mt-1 text-sm">日々の体調や気持ちの変化を記録して、ご自身の振り返りや通院時の説明に役立てたい時に。</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="purpose-card cursor-pointer bg-white p-6 rounded-2xl shadow-lg border border-transparent hover:border-blue-300" data-flow="contribute">
+                     <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 text-center sm:text-left">
+                        <div class="flex-shrink-0">
+                            <img src="https://placehold.co/80x80/cffafe/0e7490?text=役立つ" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full" alt="役立つ・貢献のイラスト">
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-800 font-klee">経験を役立てる</h2>
+                            <p class="text-gray-600 mt-1 text-sm">ご自身の貴重な経験を、同じ悩みを持つ人や医療の未来のために役立てたい時に。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ===== 画面2: つらさを話すフォーム ===== -->
+        <div id="screen-talk-post" class="screen">
+            <div class="text-center mb-8 max-w-2xl mx-auto"><button class="nav-link text-gray-500 hover:text-orange-500 mb-4" data-target="screen-purpose-selection">&larr; 目的選択に戻る</button><h1 class="text-2xl sm:text-3xl font-bold text-gray-800 font-klee">病気や症状のつらさを話す</h1><p class="mt-2 text-gray-600">あなたの言葉で、今の気持ちを伝えてみてください。</p></div>
+            <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-xl space-y-6 max-w-2xl mx-auto">
+                <div>
+                    <label for="talk-title" class="block text-sm font-bold text-gray-700 mb-2">タイトル</label>
+                    <input type="text" id="talk-title" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400" placeholder="例：最近の頭痛について">
+                </div>
+                <div>
+                    <label for="talk-disease-name" class="block text-sm font-bold text-gray-700 mb-2">具体的な疾患名・症状名</label>
+                    <input type="text" id="talk-disease-name" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400" placeholder="例：胃がん、片頭痛、花粉症など">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">治療の有無</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center">
+                        <input type="radio" name="talk-care-status" class="h-4 w-4 text-orange-600 border-gray-300 focus:ring-orange-500">
+                        <span class="ml-2 text-sm text-gray-700">治療中</span>
+                        </label>
+                        <label class="flex items-center">
+                        <input type="radio" name="talk-care-status" class="h-4 w-4 text-orange-600 border-gray-300 focus:ring-orange-500">
+                        <span class="ml-2 text-sm text-gray-700">治癒・寛解</span>
+                        </label>
+                        <label class="flex items-center">
+                        <input type="radio" name="talk-care-status" class="h-4 w-4 text-orange-600 border-gray-300 focus:ring-orange-500">
+                        <span class="ml-2 text-sm text-gray-700">治療を受けていない</span>
+                        </label>            
+                    </div>
+                </div>                
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">医師による診断</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center">
+                        <input type="radio" name="talk-diagnosis-status" class="h-4 w-4 text-orange-600 border-gray-300 focus:ring-orange-500">
+                        <span class="ml-2 text-sm text-gray-700">診断済み</span>
+                    </label>
+                    <label class="flex items-center">
+                    <input type="radio" name="talk-diagnosis-status" class="h-4 w-4 text-orange-600 border-gray-300 focus:ring-orange-500">
+                    <span class="ml-2 text-sm text-gray-700">診断されていない</span>
+                    </label>
+                    </div>
+                </div>
+                <div>
+                     <label for="content-talk" class="block text-sm font-bold text-gray-700 mb-2">あなたの気持ち</label>
+                     <textarea id="content-talk" rows="10" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400" placeholder="ここに、あなたの想いを自由にお書きください。"></textarea>
+                     <div id="ai-suggestion-talk" class="ai-suggestion mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800"><i class="fas fa-robot mr-2"></i><span id="ai-suggestion-text"></span></div>
+                </div>
+                 <div class="flex justify-end pt-4">
+                     <button class="nav-link btn-primary font-bold py-3 px-6 rounded-full transition shadow-md" data-target="screen-plus-one-buffet">投稿する</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 画面3: 記録するフォーム ===== -->
+        <div id="screen-record-post" class="screen">
+            <div class="text-center mb-8 max-w-2xl mx-auto"><button class="nav-link text-gray-500 hover:text-orange-500 mb-4" data-target="screen-purpose-selection">&larr; 目的選択に戻る</button><h1 class="text-2xl sm:text-3xl font-bold text-gray-800 font-klee">自分のために記録する</h1><p class="mt-2 text-gray-600">今日の体調や気持ちを記録しましょう。</p></div>
+            <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-xl space-y-6 max-w-2xl mx-auto">
+                 <div>
+                    <label for="record-title" class="block text-sm font-bold text-gray-700 mb-2">タイトル</label>
+                    <input type="text" id="record-title" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400" placeholder="例：今日の体調メモ (7/29)">
+                 </div>
+                <div>
+                    <label for="record-disease-name" class="block text-sm font-bold text-gray-700 mb-2">具体的な疾患名・症状名</label>
+                    <input type="text" id="record-disease-name" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400" placeholder="例：胃がん、片頭痛、花粉症など">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">治療の有無</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center">
+                        <input type="radio" name="record-care-status" class="h-4 w-4 text-orange-600 border-gray-300 focus:ring-orange-500">
+                        <span class="ml-2 text-sm text-gray-700">治療中</span>
+                        </label>
+                        <label class="flex items-center">
+                        <input type="radio" name="record-care-status" class="h-4 w-4 text-orange-600 border-gray-300 focus:ring-orange-500">
+                        <span class="ml-2 text-sm text-gray-700">治癒・寛解</span>
+                        </label>
+                        <label class="flex items-center">
+                        <input type="radio" name="record-care-status" class="h-4 w-4 text-orange-600 border-gray-300 focus:ring-orange-500">
+                        <span class="ml-2 text-sm text-gray-700">治療を受けていない</span>
+                        </label>            
+                    </div>
+                </div>                
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">医師による診断</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center">
+                        <input type="radio" name="record-diagnosis-status" class="h-4 w-4 text-orange-600 border-gray-300 focus:ring-orange-500">
+                        <span class="ml-2 text-sm text-gray-700">診断済み</span>
+                    </label>
+                    <label class="flex items-center">
+                    <input type="radio" name="record-diagnosis-status" class="h-4 w-4 text-orange-600 border-gray-300 focus:ring-orange-500">
+                    <span class="ml-2 text-sm text-gray-700">診断されていない</span>
+                    </label>
+                    </div>
+                </div>
+                 <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">今日の気分</label>
+                    <div class="mood-selector flex justify-around p-2 bg-gray-100 rounded-full">
+                        <button class="mood-btn text-3xl p-2 rounded-full" data-mood="絶好調">😊</button>
+                        <button class="mood-btn text-3xl p-2 rounded-full" data-mood="ふつう">🙂</button>
+                        <button class="mood-btn text-3xl p-2 rounded-full" data-mood="少しつらい">😟</button>
+                        <button class="mood-btn text-3xl p-2 rounded-full" data-mood="つらい">😫</button>
+                        <button class="mood-btn text-3xl p-2 rounded-full" data-mood="とてもつらい">😭</button>
+                    </div>
+                 </div>
+                 <!-- Dynamic Fields Container -->
+                 <div id="record-dynamic-fields" class="space-y-4"></div>
+                 <div>
+                     <label for="content-record" class="block text-sm font-bold text-gray-700 mb-2">メモ<span class="text-xs text-gray-500 font-medium ml-2">（飲んだ薬、出来事など）</span></label>
+                     <textarea id="content-record" rows="5" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400" placeholder="・ロキソニンを1錠服用&#10;・午後は少し楽になった"></textarea>
+                 </div>
+                 <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">公開設定</label>
+                    <select class="w-full p-3 border border-gray-300 rounded-lg bg-white"><option>自分だけに見える（非公開）</option><option>全体に公開</option></select>
+                 </div>
+                 <div class="flex justify-end pt-4">
+                     <button class="nav-link btn-primary font-bold py-3 px-6 rounded-full transition shadow-md" data-target="screen-plus-one-buffet">この内容で記録する</button>
+                 </div>
+            </div>
+        </div>
+
+        <!-- ===== 画面4: 詳細情報入力フォーム（経験を役立てる） ===== -->
+        <div id="screen-contribute-post" class="screen">
+            <div class="text-center mb-8 max-w-2xl mx-auto"><button class="nav-link text-gray-500 hover:text-orange-500 mb-4" data-target="screen-purpose-selection">&larr; 目的選択に戻る</button><h1 class="text-2xl sm:text-3xl font-bold text-gray-800 font-klee">経験を役立てる</h1><p class="mt-2 text-gray-600">ご協力に心から感謝します。差し支えない範囲でご記入ください。</p></div>
+            <div id="contribute-form-fields" class="bg-white p-6 sm:p-8 rounded-2xl shadow-xl space-y-8 max-w-2xl mx-auto">
+                <!-- Dynamic Fields are inserted here -->
+            </div>
+        </div>
+        
+        <!-- ===== NEW! 画面: プラスワン・ビュッフェ ===== -->
+        <div id="screen-plus-one-buffet" class="screen">
+             <div class="bg-white p-6 sm:p-10 rounded-2xl shadow-xl text-center max-w-2xl mx-auto">
+                <div class="text-5xl mb-4">🙌</div>
+                <h1 class="text-xl sm:text-2xl font-bold text-gray-800">ご投稿ありがとうございます！</h1>
+                <p class="mt-4 text-gray-600 leading-relaxed">
+                    あなたの貴重な声に、心より感謝します。<br>
+                    もしよろしければ、**あと少しだけ**、あなたの経験を未来の医療のために役立てませんか？<br>
+                    <span class="text-sm mt-2 inline-block">気になるテーマを選んでご協力ください。（任意）</span>
+                </p>
+                <div id="plus-one-buffet-container" class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Buffet items will be dynamically inserted here -->
+                </div>
+                <div class="mt-8">
+                    <button class="nav-link w-full sm:w-auto btn-secondary font-bold py-3 px-6 rounded-full transition" data-target="screen-supporter-mypage">記録を完了する</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ===== 画面6: マイページ（統合版） ===== -->
+        <div id="screen-supporter-mypage" class="screen">
+             <div class="text-center mb-6 max-w-4xl mx-auto">
+                <button class="nav-link text-gray-500 hover:text-orange-500 mb-4" data-target="screen-category-selection">&larr; 最初の画面に戻る</button>
+            </div>
+
+            <!-- メインのタブ切り替え -->
+            <div class="flex justify-center border-b border-gray-200 mb-6 sm:mb-8 max-w-4xl mx-auto">
+                <button class="feed-tab active text-lg font-semibold py-3 px-4 sm:px-6 text-gray-500" data-tab="mypage">
+                    <i class="fas fa-user-circle mr-1 sm:mr-2"></i>マイページ
+                </button>
+                <button class="feed-tab text-lg font-semibold py-3 px-4 sm:px-6 text-gray-500" data-tab="for-you">
+                    <i class="fas fa-user-check mr-1 sm:mr-2"></i>あなたへ
+                </button>
+                <button class="feed-tab text-lg font-semibold py-3 px-4 sm:px-6 text-gray-500" data-tab="latest">
+                    <i class="fas fa-rss mr-1 sm:mr-2"></i>最新
+                </button>
+            </div>
+
+            <div id="feed-content-container" class="max-w-6xl mx-auto">
+
+                <!-- 「マイページ」のコンテンツ -->
+                <div id="mypage-content" class="main-tab-content">
+                    <!-- プロフィールカード -->
+                    <div class="profile-card max-w-4xl mx-auto p-6 sm:p-8 rounded-xl shadow-lg mb-8 sm:mb-12">
+                        <div class="flex flex-col sm:flex-row items-center gap-6">
+                            <div class="relative shrink-0">
+                                <img src="https://placehold.co/120x120/a7f3d0/166534?text=A" alt="プロフィール画像" class="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white shadow-md">
+                                <button class="absolute bottom-0 right-0 bg-white w-8 h-8 rounded-full flex items-center justify-center shadow-md hover:bg-gray-100 transition"><i class="fas fa-camera text-gray-600"></i></button>
+                            </div>
+                            <div class="text-center sm:text-left w-full">
+                                <div class="flex items-center justify-center sm:justify-start gap-4">
+                                    <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">あなたさん</h2>
+                                    <span id="mypage-supporter-badge" class="supporter-badge bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full shadow-md hidden"><i class="fas fa-crown mr-1"></i>サポーター</span>
+                                </div>
+                                <p id="mypage-supporter-greeting" class="text-gray-600 text-sm mt-2 hidden">いつもご協力いただき、ありがとうございます！</p>
+                                <p class="text-gray-600 mt-2">ここに自己紹介文が入ります。同じ悩みを持つ方と情報交換したいです。よろしくお願いします。</p>
+                                <div class="mt-4 flex justify-center sm:justify-start gap-4">
+                                    <div class="stat-item text-center"><p class="stat-value text-2xl font-bold">12</p><p class="text-xs text-gray-500">あなたの投稿</p></div>
+                                    <div class="stat-item text-center"><p class="stat-value text-2xl font-bold">158</p><p class="text-xs text-gray-500">もらった共感</p></div>
+                                    <div class="stat-item text-center"><p class="stat-value text-2xl font-bold">25</p><p class="text-xs text-gray-500">ブックマーク</p></div>
+                                </div>
+                            </div>
+                            <a href="#" class="shrink-0 mt-4 sm:mt-0 sm:ml-auto w-full sm:w-auto bg-gray-200 text-gray-700 font-semibold py-2 px-5 rounded-full hover:bg-gray-300 transition"><i class="fas fa-cog mr-2"></i>設定</a>
+                        </div>
+                    </div>
+
+                    <!-- サポータープログラムへの導線 -->
+                    <div id="supporter-info-link-section" class="max-w-4xl mx-auto mb-8 sm:mb-12">
+                         <div class="bg-gradient-to-r from-amber-100 to-orange-100 p-6 rounded-xl shadow-md transition hover:shadow-lg cursor-pointer" id="open-supporter-info-modal">
+                            <div class="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+                                <div class="text-amber-500 text-4xl flex-shrink-0"><i class="fas fa-crown"></i></div>
+                                <div class="flex-grow">
+                                    <h3 class="font-bold text-lg text-gray-800">うちあけサポータープログラム</h3>
+                                    <p class="text-sm text-gray-600 mt-1">あなたの経験を、もっと未来の医療のために役立てませんか？サポーターについて詳しく見る</p>
+                                </div>
+                                <i class="fas fa-chevron-right text-gray-500 ml-auto hidden sm:block flex-shrink-0"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- サポーター特典 (サポーターのみ表示) -->
+                    <div id="supporter-benefits-section" class="max-w-4xl mx-auto mb-8 sm:mb-12 hidden">
+                         <h3 class="font-bold text-gray-700 mb-3 text-lg">サポーター特典</h3>
+                         <div class="space-y-3">
+                             <div class="block bg-white p-4 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow"><div class="flex items-center gap-4"><i class="fas fa-chart-line text-2xl text-blue-500"></i><div><h4 class="font-semibold text-blue-800">Myペイシェントジャーニー</h4><p class="text-sm text-gray-600">あなたの感情の推移をAIが分析・可視化します。</p></div></div></div>
+                             <div class="block bg-gray-100 p-4 rounded-lg shadow-inner border border-gray-200 opacity-70"><div class="flex items-center gap-4"><i class="fas fa-user-md text-2xl text-gray-400"></i><div><h4 class="font-semibold text-gray-500">専門家への優先質問権（準備中）</h4><p class="text-sm text-gray-500">薬剤師や専門家へ優先的に質問できます。</p></div></div></div>
+                         </div>
+                    </div>
+
+
+                    <!-- マイページ内サブタブ -->
+                    <div class="flex justify-center border-b border-gray-200 mb-6 max-w-4xl mx-auto">
+                        <button class="mypage-sub-tab active font-semibold py-2 px-5" data-subtab="my-posts">自分の投稿</button>
+                        <button class="mypage-sub-tab font-semibold py-2 px-5" data-subtab="bookmarks">ブックマーク</button>
+                    </div>
+
+                    <!-- サブタブコンテンツ -->
+                    <div id="mypage-sub-content-container" class="max-w-4xl mx-auto">
+                        <div id="my-posts-content" class="mypage-sub-content">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-2">
+                                <div class="bg-white rounded-lg shadow-md p-4"><h3 class="font-semibold text-gray-800 mb-2 line-clamp-2">ストレートネックによる頭痛</h3><p class="text-xs text-gray-600 mb-3 line-clamp-3">時々、後頭部を金槌で殴られたような痛みに襲われます...</p><div class="flex items-center text-gray-500 text-xs mt-3 border-t pt-3"><span class="flex items-center mr-3"><i class="post-card-icon fas fa-heart text-red-500"></i>45</span><span class="flex items-center"><i class="post-card-icon fas fa-comment text-blue-500"></i>8</span><a href="#" class="ml-auto text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full">編集</a></div></div>
+                            </div>
+                        </div>
+                        <div id="bookmarks-content" class="mypage-sub-content hidden">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-2">
+                                <div class="bg-white rounded-lg shadow-md p-4"><h3 class="font-semibold text-gray-800 mb-2 line-clamp-2">睡眠の質を上げるための工夫</h3><p class="text-xs text-gray-600 mb-3 line-clamp-3">「なかなか寝付けず、日中の活動にも影響が...」</p><div class="flex items-center text-gray-500 text-xs mt-3 border-t pt-3"><span class="text-xs text-gray-500">投稿者: さとうさん</span><button class="ml-auto text-yellow-500 hover:text-yellow-600"><i class="fas fa-bookmark text-lg"></i></button></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 「あなたへ」のコンテンツ -->
+                <div id="for-you-content" class="main-tab-content hidden">
+                    <div class="text-center mb-6 max-w-4xl mx-auto">
+                        <p class="text-gray-500 mb-3">あなたが関心のあるカテゴリの投稿です。</p>
+                        <button class="text-sm text-orange-600 font-semibold hover:text-orange-700 transition">
+                            <i class="fas fa-cog mr-1"></i>関心カテゴリを設定
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-2 max-w-4xl mx-auto">
+                       <p class="text-center text-gray-500 col-span-full">「あなたへ」のおすすめ投稿がここに表示されます。</p>
+                    </div>
+                </div>
+
+                <!-- 「最新」のコンテンツ -->
+                <div id="latest-content" class="main-tab-content hidden">
+                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-2 max-w-4xl mx-auto">
+                        <p class="text-center text-gray-500 col-span-full">「最新」の投稿がここに表示されます。</p>
+                     </div>
+                </div>
+                
+                 <!-- アンケートへの導線 -->
+                <div class="max-w-4xl mx-auto mt-12">
+                     <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 cursor-pointer transition hover:shadow-lg" id="open-feedback-modal">
+                        <div class="flex items-center gap-4">
+                             <div class="text-blue-500 text-3xl"><i class="fas fa-lightbulb"></i></div>
+                             <div>
+                                <h3 class="font-bold text-gray-800">サービスを一緒に育てませんか？</h3>
+                                <p class="text-sm text-gray-600 mt-1">より良いサービスのため、あなたの声をお聞かせください。（1分程度）</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    
+    <!-- ===== Modals ===== -->
+    <div id="promise-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+        <div class="modal-content bg-white w-full max-w-lg p-6 sm:p-8 rounded-2xl shadow-2xl relative"><button id="close-promise-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl">&times;</button><div class="text-center"><i class="fas fa-shield-halved text-4xl text-blue-500"></i><h2 class="text-2xl font-bold mt-4 text-gray-800">うちあけの３つのお約束</h2><p class="mt-2 text-gray-600">あなたが安心して「うちあける」ための場所であるために。</p></div><div class="mt-8 space-y-6 text-left"><div><h3 class="font-bold text-lg flex items-center"><span class="font-klee text-2xl text-orange-500 mr-2">1.</span>匿名性の絶対的な保護</h3><p class="mt-1 text-sm text-gray-600 border-l-2 border-orange-200 pl-4">氏名や住所、連絡先などの個人情報は一切いただきません。誰が投稿したか特定されることはありませんので、ご安心ください。</p></div><div><h3 class="font-bold text-lg flex items-center"><span class="font-klee text-2xl text-blue-500 mr-2">2.</span>完全無料で広告もありません</h3><p class="mt-1 text-sm text-gray-600 border-l-2 border-blue-200 pl-4">うちあけの利用はすべて無料です。あなたの体験を邪魔するような広告は一切表示しません。</p></div><div><h3 class="font-bold text-lg flex items-center"><span class="font-klee text-2xl text-green-500 mr-2">3.</span>あなたの声で、医療を前に進めます</h3><p class="mt-1 text-sm text-gray-600 border-l-2 border-green-200 pl-4">では、なぜ無料で運営できるのか。それは、皆様から寄せられたお声を、個人が特定できない統計情報として製薬会社や研究機関にお届けし、その対価で運営しているからです。あなたの「うちあけ」が、薬の改良や新しいサポートサービスの開発に繋がり、未来の誰かを救う力になります。</p></div></div><div class="mt-8 text-center"><button id="understand-promise-btn" class="w-full btn-primary font-bold py-3 px-6 rounded-full transition shadow-md">理解しました</button></div></div>
+    </div>
+    
+    <!-- Supporter Info Modal -->
+    <div id="supporter-info-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+        <div class="modal-content bg-white w-full max-w-2xl p-6 sm:p-8 rounded-2xl shadow-2xl relative">
+            <button id="close-supporter-info-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+            <div class="text-center">
+                <i class="fas fa-crown text-4xl text-amber-400"></i>
+                <h2 class="text-2xl font-bold mt-4 text-gray-800">うちあけサポータープログラムについて</h2>
+                <p class="mt-2 text-gray-600">あなたの経験は、未来の医療にとっての貴重な財産です。</p>
+            </div>
+            <div class="mt-8 space-y-6 text-left">
+                <div>
+                    <h3 class="font-bold text-lg text-gray-800">サポーターとは？</h3>
+                    <p class="mt-1 text-sm text-gray-600">「うちあけサポーター」とは、ご自身の体験をより詳しく共有することで、同じ悩みを持つ方や未来の医療に積極的に貢献してくださるユーザーのことです。サポーターへの参加や活動は**すべて無料**です。</p>
+                </div>
+                 <div>
+                    <h3 class="font-bold text-lg text-gray-800">サポーターになるには？</h3>
+                    <p class="mt-1 text-sm text-gray-600 mb-4">うちあけでの活動を通じて、以下の条件を満たすと自動的にサポーターとして認定されます。</p>
+                    <div id="supporter-conditions-list" class="space-y-4">
+                        <!-- Conditions will be dynamically inserted here by JS -->
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg text-gray-800">サポーターの特典</h3>
+                    <p class="mt-1 text-sm text-gray-600">ご協力への感謝として、特別な機能をご利用いただけます。</p>
+                    <div class="mt-3 space-y-2">
+                         <div class="block bg-blue-50 p-3 rounded-lg"><div class="flex items-center gap-3"><i class="fas fa-chart-line text-xl text-blue-500"></i><div><h4 class="font-semibold text-blue-800 text-sm">Myペイシェントジャーニー</h4></div></div></div>
+                         <div class="block bg-gray-100 p-3 rounded-lg opacity-70"><div class="flex items-center gap-3"><i class="fas fa-user-md text-xl text-gray-400"></i><div><h4 class="font-semibold text-gray-500 text-sm">専門家への優先質問権（準備中）</h4></div></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Feedback Modal -->
+    <div id="feedback-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+        <div class="modal-content bg-white w-full max-w-lg p-6 sm:p-8 rounded-2xl shadow-2xl relative">
+            <button id="close-feedback-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+            <form id="feedback-form-content">
+                <div class="text-center">
+                    <i class="fas fa-lightbulb text-4xl text-blue-500"></i>
+                    <h2 class="text-2xl font-bold mt-4 text-gray-800">サービスを一緒に育てませんか？</h2>
+                    <p class="mt-2 text-gray-600 text-sm leading-relaxed">「うちあけ」は始まったばかりのサービスです。皆さんと一緒に、もっと使いやすく、もっと心安らぐ場所にしていきたいと思っています。<br><span class="font-bold mt-2 inline-block">このアンケートは匿名で送信され、個人が特定されることはありませんので、どうぞ率直なご意見をお聞かせください。</span></p>
+                </div>
+                <div class="mt-8 space-y-6 text-left">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">特に改善してほしい点はどこですか？（複数選択可）</label>
+                        <div class="space-y-2 text-sm">
+                            <label class="flex items-center"><input type="checkbox" class="h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500 mr-2">デザイン・見た目</label>
+                            <label class="flex items-center"><input type="checkbox" class="h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500 mr-2">投稿・記録のしやすさ</label>
+                            <label class="flex items-center"><input type="checkbox" class="h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500 mr-2">投稿の探しやすさ（検索機能）</label>
+                            <label class="flex items-center"><input type="checkbox" class="h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500 mr-2">マイページ機能</label>
+                            <label class="flex items-center"><input type="checkbox" class="h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500 mr-2">サポーター制度について</label>
+                            <label class="flex items-center"><input type="checkbox" class="h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500 mr-2">その他</label>
+                        </div>
+                    </div>
+                     <div>
+                        <label for="feedback-textarea" class="block text-sm font-bold text-gray-700 mb-2">「こんな機能がほしい」「ここが使いにくい」など、ご意見を自由にお聞かせください。</label>
+                        <textarea id="feedback-textarea" rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400" placeholder="例：自分の投稿に画像を追加できるようにしてほしい"></textarea>
+                    </div>
+                </div>
+                <div class="mt-8 text-center">
+                    <button id="submit-feedback-btn" type="submit" class="w-full btn-primary font-bold py-3 px-6 rounded-full transition shadow-md">ご意見を送る</button>
+                </div>
+            </form>
+             <div id="feedback-thanks-content" class="text-center hidden">
+                <div class="text-5xl mb-4">💌</div>
+                <h2 class="text-2xl font-bold mt-4 text-gray-800">ご協力ありがとうございました！</h2>
+                <p class="mt-2 text-gray-600 text-sm leading-relaxed">いただいた貴重なご意見は、今後のサービス改善の参考にさせていただきます。</p>
+                 <div class="mt-8 text-center">
+                    <button id="close-thanks-btn" class="w-full btn-secondary font-bold py-3 px-6 rounded-full transition">閉じる</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="plus-one-question-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+    <div class="modal-content bg-white w-full max-w-lg p-6 sm:p-8 rounded-2xl shadow-2xl relative">
+        <button id="close-plus-one-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+        <form id="plus-one-form-content">
+            <div id="plus-one-modal-body" class="space-y-4">
+                </div>
+            <div class="mt-8 flex justify-end gap-4">
+                 <button id="cancel-plus-one-btn" type="button" class="btn-secondary font-bold py-2 px-5 rounded-full transition">キャンセル</button>
+                 <button id="submit-plus-one-btn" type="submit" class="btn-green font-bold py-2 px-5 rounded-full transition shadow-md">この内容で協力する</button>
+            </div>
+        </form>
+        <div id="plus-one-thanks-content" class="text-center hidden">
+            <div class="text-5xl mb-4">👍</div>
+            <h2 class="text-2xl font-bold mt-4 text-gray-800">ご協力ありがとうございました！</h2>
+            <p class="mt-2 text-gray-600 text-sm">あなたの貴重な体験が、未来の誰かの助けになります。</p>
+            <div class="mt-8 text-center">
+                <button id="close-plus-one-thanks-btn" class="w-full btn-secondary font-bold py-3 px-6 rounded-full transition">閉じる</button>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const state = {
+                selectedCategory: null,
+                searchTerm: '',
+                isSupporter: false, // Initial supporter status
+                currentFlow: null, // 'talk', 'record', or 'contribute'
+                supporterProgress: { // User's current progress
+                    register: 1, // Already registered
+                    setCategory: 0,
+                    viewPost: 5,
+                    giveEmpathy: 2,
+                    contributePost: 0,
+                    giveFeedback: 0,
+                }
+            };
+            
+            const supporterGoals = {
+                register: 1,
+                setCategory: 1,
+                viewPost: 10,
+                giveEmpathy: 5,
+                contributePost: 1,
+                giveFeedback: 1,
+            };
+
+            const plusOneQuestions = {
+                talk: {
+                    label: "いつ頃、その症状に気づきましたか？",
+                    placeholder: "例：約半年前、高校生の頃から",
+                    type: "text",
+                    id: "plus-one-onset-timing"
+                },
+                record: {
+                    label: "どのような治療やセルフケアを試しましたか？",
+                    placeholder: "例：処方された〇〇の薬を飲んでいます。週に1回、整体にも通っています。",
+                    type: "textarea",
+                    id: "plus-one-treatment"
+                },
+                 contribute: {
+                    label: "今後の見通しや、同じ悩みを持つ方へのメッセージがあればお聞かせください。",
+                    placeholder: "例：完治は難しいと言われていますが、うまく付き合っていきたいです。一人で悩まないでください。",
+                    type: "textarea",
+                    id: "plus-one-outlook"
+                }
+            }
+            
+            // (diseaseDatabase remains the same)
+            const diseaseDatabase = {
+"頭・脳・神経": {
+    examples: ["片頭痛", "脳卒中", "てんかん", "認知症"],
+    keywords: ["頭痛", "片頭痛", "めまい", "しびれ", "麻痺", "けいれん", "物忘れ", "認知症", "アルツハイマー", "パーキンソン病", "脳卒中", "脳梗塞", "くも膜下出血", "脳出血", "てんかん", "ろれつが回らない"],
+    recordFields: {
+        "主な症状": {
+            "痛み(頭痛)": ["ズキズキする", "締め付けられる", "ガンガンする", "電気が走るよう"],
+            "めまい": ["ぐるぐる回る(回転性)", "ふわふわする(浮動性)", "立ちくらみ"],
+            "しびれ・麻痺": ["ジンジンする", "感覚が鈍い", "力が入らない", "ピリピリする"],
+            "もの忘れ": ["新しいことを覚えにくい", "物の置き場所を忘れる", "言葉が出てこない"],
+            "けいれん": ["意識があった", "意識がなかった", "体の一部だけだった"]
+        },
+        "症状の強さ(1~5)": ["1: 軽い", "2", "3", "4", "5: とても強い"],
+        "症状が起きたタイミング": ["朝起きた時", "仕事中・活動中", "リラックスしている時", "特定の動作をした時", "いつでも"]
+    },
+    contributePlaceholders: {
+        treatment: "例：脳神経内科で〇〇という薬を処方されています。月に1回リハビリにも通っています。",
+        life: "例：車の運転を控えています。予定をカレンダーに書いて忘れないように工夫しています。"
+    }
+},
+"耳鼻・口・目": {
+    examples: ["花粉症", "副鼻腔炎", "ドライアイ", "中耳炎"],
+    keywords: ["花粉症", "アレルギー性鼻炎", "副鼻腔炎", "ちくのう", "中耳炎", "耳鳴り", "難聴", "めまい", "扁桃炎", "喉の痛み", "声がれ", "口内炎", "歯周病", "歯痛", "味覚障害", "ドライアイ", "結膜炎", "ものもらい", "白内障", "緑内障"],
+    recordFields: {
+        "症状の部位": {
+            "耳": ["痛み", "かゆみ", "聞こえにくい", "耳鳴り", "耳だれ", "閉塞感(詰まった感じ)"],
+            "鼻": ["鼻水", "鼻づまり", "くしゃみ", "においがしない", "鼻血"],
+            "のど": ["痛み", "腫れ", "違和感", "声がれ", "飲み込みにくい", "咳・たん"],
+            "目": ["かゆみ", "充血", "目やに", "かすみ", "涙が出る", "視力低下", "痛み"],
+            "口・歯": ["痛み", "腫れ", "味覚の変化", "出血(歯ぐきなど)", "口の渇き"]
+        },
+        "症状の強さ(1~5)": ["1: 軽い", "2", "3", "4", "5: とても強い"],
+        "症状の頻度": ["常に続いている", "特定の時間帯に悪化する", "日によって波がある", "時々起こる"]
+    },
+    contributePlaceholders: {
+        treatment: "例：耳鼻咽喉科で処方された〇〇（点鼻薬）と△△（抗アレルギー薬）を使用しています。",
+        life: "例：部屋を加湿して、喉や鼻の乾燥を防いでいます。口内炎ができやすいので、刺激の強い食べ物は避けています。"
+    }
+},
+"手足・肩・腰": {
+    examples: ["腰痛", "関節リウマチ", "四十肩・五十肩", "椎間板ヘルニア"],
+    keywords: ["腰痛", "ぎっくり腰", "肩こり", "関節痛", "関節炎", "リウマチ", "四十肩", "五十肩", "椎間板ヘルニア", "坐骨神経痛", "腱鞘炎", "痛風", "肉離れ", "こわばり", "膝", "肘", "手首"],
+    recordFields: {
+        "痛む部位": ["首", "肩", "腕・肘", "手・指", "背中", "腰", "股関節", "膝", "足首・足先"],
+        "痛みの種類": ["ズキズキする", "ジンジンする(しびれ)", "ピリピリする", "重い・だるい", "動かすと痛い", "こわばる"],
+        "どのような時に痛みますか？": ["朝起きた時", "動き始め", "常に痛む", "特定の動作で痛む", "安静にしていても痛む"],
+        "生活への影響": ["歩くのがつらい", "物を持つのがつらい", "寝返りをうつのがつらい", "着替えが大変", "長時間座っていられない", "特にない"]
+    },
+    contributePlaceholders: {
+        treatment: "例：整形外科で湿布と痛み止めを処方されました。週に1回リハビリに通い、電気治療を受けています。",
+        life: "例：デスクワーク中は1時間ごとに立ち上がってストレッチをしています。痛む日はサポーターを使っています。"
+    }
+},
+"心臓・肺・気道": {
+    examples: ["高血圧", "喘息", "心筋梗塞", "COPD(慢性閉塞性肺疾患)"],
+    keywords: ["高血圧", "不整脈", "喘息", "ぜんそく", "肺炎", "心筋梗塞", "狭心症", "心不全", "COPD", "慢性閉塞性肺疾患", "気管支炎", "動悸", "息切れ", "胸の痛み", "咳", "痰"],
+    recordFields: {
+        "特に気になる症状": ["動悸・脈の乱れ", "息切れ", "胸の痛み・圧迫感", "咳・たん", "ゼーゼーする(喘鳴)", "血圧の変動"],
+        "症状が起こる状況": ["運動した時", "安静にしている時", "夜間・明け方", "特定の季節・天気", "ストレスを感じた時"],
+        "血圧の記録(任意)": [],
+        "脈拍の記録(任意)": []
+    },
+    contributePlaceholders: {
+        treatment: "例：血圧を下げる薬と、発作用の吸入薬を使っています。定期的に心電図の検査を受けています。",
+        life: "例：塩分を控えた食事と、無理のない範囲でのウォーキングを続けています。天気の悪い日は早めに吸入するようにしています。"
+    }
+},
+"血管・血液": {
+    examples: ["貧血", "白血病", "血栓症", "多発性骨髄腫"],
+    keywords: ["貧血", "白血病", "リンパ腫", "多発性骨髄腫", "血栓症", "動脈硬化", "静脈瘤", "血友病", "立ちくらみ", "息切れ", "倦怠感", "むくみ", "あざ", "鼻血", "動悸"],
+    recordFields: {
+        "気になる症状": ["立ちくらみ・めまい", "息切れ・倦怠感", "むくみ(浮腫)", "あざ・鼻血など出血しやすい", "動悸", "足の血管が浮き出る"],
+        "ヘモグロビン値(任意)": [],
+        "血小板の数値(任意)": [],
+        "血圧(任意)": []
+    },
+    contributePlaceholders: {
+        treatment: "例：血液をサラサラにする薬（抗凝固薬）を飲んでいます。定期的に血液検査を受けて数値を確認しています。",
+        life: "例：立ち上がる時はゆっくり動くようにしています。足を圧迫する着圧ソックスを履いています。"
+    }
+},
+"胃・食道・腸": {
+    examples: ["逆流性食道炎", "過敏性腸症候群(IBS)", "潰瘍性大腸炎", "クローン病"],
+    keywords: ["胃痛", "胸焼け", "胃もたれ", "吐き気", "逆流性食道炎", "胃炎", "胃潰瘍", "過敏性腸症候群", "IBS", "潰瘍性大腸炎", "クローン病", "便秘", "下痢", "腹痛", "腹部膨満感", "血便"],
+    recordFields: {
+        "主な症状": ["胃痛・腹痛", "胸焼け・胃酸逆流", "吐き気・嘔吐", "胃もたれ・膨満感", "便秘", "下痢", "血便"],
+        "食事との関連": ["食前", "食後", "空腹時", "夜間", "関係ない"],
+        "便の状態(任意)": ["硬くて出にくい", "泥状・水様便", "色がいつもと違う", "血が混じっている", "特に変化なし"],
+        "症状が悪化する要因": ["ストレス", "特定の食べ物", "疲れ・寝不足", "季節の変わり目", "特にない・わからない"]
+    },
+    contributePlaceholders: {
+        treatment: "例：胃酸を抑える薬（PPI）と、腸の炎症を抑える薬を服用中です。定期的に内視鏡検査を受けています。",
+        life: "例：消化の良いものを中心に、食事の時間を規則正しくしています。ストレスを溜めないように、軽い運動を取り入れています。"
+    }
+},
+"肝臓・膵臓・胆嚢": {
+    examples: ["脂肪肝", "肝炎", "膵炎", "胆石症"],
+    keywords: ["肝臓", "膵臓", "胆嚢", "脂肪肝", "肝炎", "B型肝炎", "C型肝炎", "肝硬変", "膵炎", "胆石症", "胆嚢炎", "肝臓がん", "膵がん", "だるさ", "倦怠感", "黄疸", "腹痛", "食欲不振"],
+    recordFields: {
+        "気になる症状": ["全身の倦怠感(だるさ)", "黄疸(皮膚や白目が黄色い)", "腹部の張り・右上腹部の痛み", "吐き気・食欲不振", "尿の色が濃い"],
+        "飲酒の頻度": ["毎日", "週に数回", "月に数回", "ほとんど飲まない"],
+        "AST(GOT)の数値(任意)": [],
+        "ALT(GPT)の数値(任意)": [],
+        "γ-GTPの数値(任意)": []
+    },
+    contributePlaceholders: {
+        treatment: "例：ウルソなどの薬を服用し、定期的に血液検査と腹部エコーで経過観察をしています。",
+        life: "例：禁酒し、脂肪分の多い食事を避けてバランスの良い食事を心がけています。体重管理も意識しています。"
+    }
+},
+"腎臓・尿路・尻": {
+    examples: ["膀胱炎", "尿路結石", "慢性腎臓病(CKD)", "痔"],
+    keywords: ["腎臓", "腎不全", "透析", "慢性腎臓病", "CKD", "膀胱炎", "尿路結石", "頻尿", "残尿感", "尿意切迫感", "夜間頻尿", "血尿", "排尿痛", "痔", "痔核", "切れ痔", "いぼ痔", "排便痛", "出血", "むくみ"],
+    recordFields: {
+        "気になる症状": ["トイレが近い(頻尿)", "残尿感・すっきりしない", "排尿時の痛み", "急に強い尿意がくる", "血尿・尿の濁り", "お尻の痛み・かゆみ", "排便時の出血", "全身のむくみ・だるさ"],
+        "夜中にトイレで起きる回数": ["0回", "1回", "2回", "3回以上"],
+        "1日の水分摂取量": ["1L未満", "1-2L", "2L以上"],
+        "eGFRの数値(任意)": []
+    },
+    contributePlaceholders: {
+        treatment: "例：泌尿器科で処方された薬と、市販の塗り薬を併用しています。腎機能低下のため、週3回透析治療を受けています。",
+        life: "例：水分をこまめに摂るようにし、体を冷やさないようにしています。長時間の座りっぱなしを避けています。"
+    }
+},
+"皮膚・肌・髪": {
+    examples: ["アトピー性皮膚炎", "ニキビ", "蕁麻疹", "乾癬", "脱毛症"],
+    keywords: ["アトピー", "湿疹", "かゆみ", "赤み", "乾燥肌", "肌荒れ", "ニキビ", "蕁麻疹", "じんましん", "乾癬", "帯状疱疹", "強皮症", "脱毛症", "円形脱毛症", "薄毛", "フケ", "発疹"],
+    recordFields: {
+        "気になる症状": ["かゆみ", "赤み・湿疹", "カサカサ・乾燥", "できもの(ニキビなど)", "痛み", "フケ", "抜け毛・薄毛"],
+        "症状の部位": ["顔", "頭皮", "首", "手・腕", "足", "背中", "全身"],
+        "かゆみの強さ(1~5)": ["1: ほとんどない", "2: 少し", "3: 我慢できる", "4: 強い", "5: 我慢できない"],
+        "症状が悪化する要因": ["汗をかいた時", "乾燥", "特定の食べ物", "ストレス・疲れ", "季節の変わり目", "特にない"]
+    },
+    contributePlaceholders: {
+        treatment: "例：皮膚科で処方された塗り薬（ステロイド）と保湿剤を毎日使っています。飲み薬（抗アレルギー薬）も服用しています。",
+        life: "例：肌に優しい綿素材の服を選び、汗をかいたらこまめに着替えています。紫外線対策も欠かさず行っています。"
+    }
+},
+"骨・関節・筋肉": {
+    examples: ["関節リウマチ", "変形性関節症", "骨粗鬆症", "痛風"],
+    keywords: ["関節リウマチ", "変形性関節症", "骨粗鬆症", "痛風", "骨折", "脱臼", "ヘルニア", "四十肩", "五十肩", "筋肉痛", "肉離れ", "こわばり", "関節痛", "膝", "股関節"],
+    recordFields: {
+        "気になる症状": ["関節の痛み", "関節の腫れ・熱っぽさ", "朝のこわばり", "動かしにくい(可動域の制限)", "筋肉の痛み・けいれん", "力が入りにくい"],
+        "症状のある部位": ["指の関節", "手首", "肘", "肩", "首", "背中・腰", "股関節", "膝", "足首・足先", "全身"],
+        "どのような時に症状が出ますか？": ["朝起きた時", "動き始め", "特定の動作をした時", "安静にしていても痛む", "天気が悪い日"],
+        "痛みの強さ(1~5)": ["1: ほとんど気にならない", "2: 少し痛む", "3: 痛むが動ける", "4: 動くのがつらい", "5: ほとんど動けない"]
+    },
+    contributePlaceholders: {
+        treatment: "例：リウマチ科で〇〇（生物学的製剤）の自己注射と、△△（痛み止め）を処方されています。定期的にリハビリも行っています。",
+        life: "例：ドアノブをレバー式に変えたり、ペットボトルの蓋を開ける道具を使ったりして、関節への負担を減らしています。"
+    }
+},
+"ストレス・睡眠": {
+    examples: ["不眠症", "自律神経失調症", "うつ病", "パニック障害"],
+    keywords: ["ストレス", "不眠症", "過眠症", "自律神経失調症", "うつ病", "パニック障害", "不安", "イライラ", "眠れない", "寝付けない", "気分の落ち込み", "倦怠感", "日中の眠気", "悪夢", "朝起きられない"],
+    recordFields: {
+        "睡眠の悩み": ["なかなか寝付けない", "夜中や早朝に目が覚める", "日中に強い眠気がある", "朝スッキリ起きられない", "悪夢をよく見る"],
+        "睡眠の質(昨晩)": ["よく眠れた", "途中で目が覚めた", "ほとんど眠れなかった", "寝た気がしない"],
+        "睡眠時間(昨晩)": ["4時間未満", "4-6時間", "6-8時間", "8時間以上"],
+        "日中のストレス度(1~5)": ["1: ほとんどない", "2: 少しある", "3: 普通", "4: 強い", "5: とても強い"],
+        "今日の気分": ["良い", "普通", "少し落ち込んでいる", "不安・イライラする", "無気力"]
+    },
+    contributePlaceholders: {
+        treatment: "例：心療内科で睡眠導入剤と抗不安薬を処方してもらいました。週に1回カウンセリングも受けています。",
+        life: "例：寝る1時間前からはスマホを見ず、ストレッチをしてリラックスする時間を作っています。日中は意識して散歩するようにしています。"
+    }
+},
+"ホルモン・代謝": {
+    examples: ["糖尿病", "脂質異常症", "橋本病", "バセドウ病"],
+    keywords: ["糖尿病", "1型糖尿病", "2型糖尿病", "血糖値", "インスリン", "脂質異常症", "高コレステロール", "中性脂肪", "甲状腺", "橋本病", "甲状腺機能低下症", "バセドウ病", "甲状腺機能亢進症", "喉の渇き", "体重変化", "多汗", "動悸", "むくみ"],
+    recordFields: {
+        "気になる症状": ["喉が渇く・水分を多く摂る", "トイレが近い(頻尿)", "急な体重の増減", "異常な汗をかく(多汗)", "動悸・手の震え", "強い倦怠感・むくみ", "食欲の大きな変化"],
+        "血糖値またはHbA1c(任意)": [],
+        "TSH/FT4/FT3など甲状腺関連の数値(任意)": [],
+        "コレステロール/中性脂肪の数値(任意)": []
+    },
+    contributePlaceholders: {
+        treatment: "例：血糖値を下げる薬を毎日飲んでいます。甲状腺ホルモンを補充する薬（チラーヂンなど）も服用中です。",
+        life: "例：糖質を控えた食事と定期的な運動を続けています。首の腫れがないか、毎日鏡でチェックするようにしています。"
+    }
+},
+"心・精神": {
+    examples: ["うつ病", "適応障害", "パニック障害", "不安障害"],
+    keywords: ["うつ病", "うつ", "双極性障害", "適応障害", "パニック障害", "不安障害", "統合失調症", "摂食障害", "強迫性障害", "HSP", "不安", "落ち込み", "イライラ", "幻聴", "希死念慮"],
+    recordFields: {
+        "気分の状態(1~5)": ["1: とてもつらい", "2: つらい", "3: 普通", "4: 少し良い", "5: とても良い"],
+        "主な感情・感覚": ["不安・焦り", "気分の落ち込み", "イライラ", "無気力・何もしたくない", "以前のように楽しめない", "孤独感"],
+        "身体的な症状": ["頭痛", "動悸・息苦しさ", "めまい・ふらつき", "吐き気・食欲不振", "過食", "眠れない(不眠)", "起きられない(過眠)", "特になし"],
+        "対人関係の悩み": ["人と会うのが億劫", "人間関係がうまくいかない", "孤立していると感じる", "特になし"]
+    },
+    contributePlaceholders: {
+        treatment: "例：精神科で〇〇（SSRI）と△△（抗不安薬）を処方されています。週に1回カウンセリングを受け、自分の考え方の癖を見直しています。",
+        life: "例：調子の良い日は散歩に出かけるなど、無理のない範囲で活動するようにしています。つらい時は『休んでいいんだ』と自分に許可を出すようにしています。"
+    }
+},
+"感染症": {
+    examples: ["インフルエンザ", "新型コロナウイルス感染症", "帯状疱疹", "ノロウイルス"],
+    keywords: ["インフルエンザ", "新型コロナ", "コロナ", "帯状疱疹", "ヘルペス", "ノロウイルス", "溶連菌", "マイコプラズマ", "おたふくかぜ", "水ぼうそう", "発熱", "咳", "のどの痛み", "嘔吐", "下痢", "発疹"],
+    recordFields: {
+        "主な症状": ["発熱", "咳・たん", "のどの痛み", "鼻水・鼻づまり", "吐き気・嘔吐", "下痢", "発疹・水ぶくれ", "全身の倦怠感・関節痛"],
+        "最高の体温(任意)": [],
+        "感染したと思われる場所・原因": ["家族から", "職場・学校", "人混み", "食べ物から", "わからない"],
+        "主な療養期間": ["3日以内", "約1週間", "1~2週間", "2週間以上"]
+    },
+    contributePlaceholders: {
+        treatment: "例：内科で処方された抗ウイルス薬を5日間飲み切りました。熱が高かったので解熱剤も使いました。",
+        life: "例：家族にうつさないように、部屋を分けて過ごし、こまめに水分補給と休息をとることを心がけました。"
+    }
+},
+"がん": {examples: ["乳がん", "肺がん", "大腸がん", "胃がん"],
+    keywords: ["がん", "癌", "悪性腫瘍", "腫瘍", "ステージ", "抗がん剤", "放射線", "化学療法", "手術", "転移", "乳がん", "肺がん", "大腸がん", "胃がん", "膵臓がん", "白血病", "リンパ腫", "前立腺がん", "子宮がん"],
+    recordFields: {"診断された時期": [],
+        "ステージ": ["ステージ0", "ステージI", "ステージII", "ステージIII", "ステージIV", "不明"],
+        "主な治療法": ["手術", "抗がん剤治療(化学療法)", "放射線治療", "分子標的薬", "免疫療法", "ホルモン療法", "経過観察"],
+        "副作用の強さ(1~5)": ["1: ほとんどない", "2: 軽い", "3: 普通", "4: 強い", "5: とても強い"]
+    },
+    contributePlaceholders: {
+        treatment: "例：抗がん剤治療（〇〇と△△を併用）を6クール行いました。副作用の吐き気止めとして□□を服用しました。",
+        life: "例：治療中は体力が落ちるので、無理せず休むことを心がけています。食事は消化の良いものを選んでいます。"
+    }
+},                
+"生活習慣病": {
+    examples: ["高血圧症", "2型糖尿病", "脂質異常症", "高尿酸血症(痛風)"],
+    keywords: ["生活習慣病", "高血圧", "糖尿病", "脂質異常症", "高コレステロール", "中性脂肪", "血糖値", "HbA1c", "肥満", "メタボリックシンドローム", "メタボ", "痛風", "高尿酸血症", "脂肪肝"],
+    recordFields: {
+        "気になること": ["血圧が高い", "血糖値が高い", "コレステロール/中性脂肪が高い", "尿酸値が高い", "体重が増えた", "健康診断で指摘された"],
+        "血圧(上/下) (任意)": [],
+        "血糖値またはHbA1C(任意)": [],
+        "LDLコレステロール(任意)": [],
+        "運動の頻度": ["週に3日以上", "週に1~2日", "月に数回", "ほとんどしない"],
+        "食生活で気をつけていること": ["塩分を控える", "糖質を控える", "脂質を控える", "野菜を多く摂る", "お酒を控える", "特にない"]
+    },
+    contributePlaceholders: {
+        treatment: "例：降圧剤（血圧の薬）を飲み始めました。3ヶ月に1回通院して、血液検査を受けています。",
+        life: "例：毎日1駅分歩く、エレベーターを階段にするなど、日常生活の中で運動量を増やす工夫をしています。食事は塩分を意識して、麺類の汁は飲まないようにしています。"
+    }
+},
+"免疫疾患": {
+    examples: ["関節リウマチ", "全身性エリテマトーデス(SLE)", "シェーグレン症候群", "強皮症"],
+    keywords: ["自己免疫疾患", "膠原病", "関節リウマチ", "全身性エリテマトーデス", "SLE", "シェーグレン症候群", "強皮症", "潰瘍性大腸炎", "クローン病", "橋本病", "バセドウ病", "関節痛", "発熱", "発疹", "光線過敏症"],
+    recordFields: {
+        "気になる症状": ["関節の痛み・こわばり", "皮膚の発疹・硬化", "原因不明の発熱", "強い疲労感・倦怠感", "口や目の乾燥", "脱毛", "日光による症状悪化(光線過敏症)"],
+        "疲労感の強さ(1~5)": ["1: 感じない", "2: 少し", "3: 日常生活に影響あり", "4: 強い", "5: 起き上がれないほど"],
+        "症状の波について": ["安定している(寛解)", "少し悪化している(再燃)", "日によって大きく変動する", "常に症状がある"],
+        "症状が悪化するきっかけ": ["ストレス", "疲れ・寝不足", "季節の変わり目・天気", "日光(紫外線)", "感染症", "わからない"]
+    },
+    contributePlaceholders: {
+        treatment: "例：プレドニン（ステロイド）と免疫抑制剤を服用中です。症状が強い時は生物学的製剤の注射も使います。",
+        life: "例：疲れやすいので無理のないスケジュールを立て、こまめに休息をとっています。紫外線対策として、日傘や長袖を徹底しています。"
+    }
+},
+"遺伝子疾患": {
+    examples: ["ダウン症候群", "筋ジストロフィー", "ファブリー病", "血友病"],
+    keywords: ["遺伝子疾患", "遺伝", "染色体", "先天性", "難病", "希少疾患", "ダウン症候群", "筋ジストロフィー", "ファブリー病", "血友病", "ハンチントン病"],
+    recordFields: {
+        "診断された時期": ["生まれた時", "幼少期", "思春期", "成人後"],
+        "主な症状・お悩み": ["身体的な発達・運動機能", "知的・学習面の発達", "コミュニケーション", "日常生活動作(食事・着替えなど)", "特定の臓器の症状", "精神的な症状"],
+        "利用しているサポートや制度": ["療育・リハビリ", "特別支援教育", "指定難病の医療費助成", "障害者手帳", "患者会", "ヘルパー・介助サービス", "特にない"],
+        "日常生活での工夫": []
+    },
+    contributePlaceholders: {
+        treatment: "例：〇〇科に定期的に通院し、症状を抑える薬を服用しています。理学療法士さんによるリハビリも週に1回受けています。",
+        life: "例：地域の患者会に参加して情報交換をしたり、同じ病気の子を持つ親御さんとSNSで繋がったりしています。市の福祉サービスも利用しています。"
+    }
+},
+"男性に多い疾患": {
+    examples: ["前立腺肥大症", "AGA(男性型脱毛症)", "痛風", "ED(勃起不全)"],
+    keywords: ["男性", "前立腺", "前立腺肥大症", "前立腺がん", "排尿困難", "頻尿", "残尿感", "AGA", "男性型脱毛症", "薄毛", "痛風", "高尿酸血症", "プリン体", "ED", "勃起不全"],
+    recordFields: {
+        "お悩みの種類": ["排尿に関する悩み", "髪の毛に関する悩み(AGA)", "性機能に関する悩み(ED)", "関節の急な痛み(痛風)"],
+        "排尿に関する具体的な症状": ["尿の勢いが弱い", "トイレが近い(頻尿)", "残尿感(出しきれない感じ)", "夜中にトイレに起きる", "尿漏れ"],
+        "髪の毛に関する具体的な悩み": ["生え際が後退してきた", "頭頂部が薄くなってきた", "髪全体のボリュームが減った"],
+        "尿酸値(任意、痛風の場合)": []
+    },
+    contributePlaceholders: {
+        treatment: "例：泌尿器科で前立腺肥大症の薬を処方されています。AGA治療のため、皮膚科で処方された内服薬も飲んでいます。",
+        life: "例：痛風予防のため、プリン体の多い食事（レバーや魚卵など）やアルコールを控えています。前立腺のために、長時間のサイクリングは避けるようにしています。"
+    }
+},
+"女性に多い疾患": {
+    examples: ["月経前症候群(PMS)", "子宮内膜症", "更年期障害", "乳がん"],
+    keywords: ["女性", "婦人科", "生理痛", "月経困難症", "生理不順", "不正出血", "PMS", "PMDD", "子宮筋腫", "子宮内膜症", "卵巣嚢腫", "更年期障害", "ホットフラッシュ", "乳がん", "乳腺症", "妊活", "不妊"],
+    recordFields: {
+        "気になる症状": ["生理痛・下腹部痛", "生理不順・不正出血", "PMS(気分の落ち込み、イライラなど)", "更年期症状(ホットフラッシュ、多汗など)", "胸のしこり・痛み", "おりものの異常"],
+        "症状と生理周期の関連": ["生理前に悪化する", "生理中に悪化する", "排卵期に悪化する", "特に関連はない", "閉経している"],
+        "痛みの強さ(生理痛など)(1~5)": ["1: ほとんどない", "2: 軽い痛み", "3: 痛み止めが必要", "4: 動くのがつらい", "5: 日常生活に支障がある"],
+        "最後の婦人科検診": ["1年以内", "1~2年前", "3年以上前", "受けたことがない"]
+    },
+    contributePlaceholders: {
+        treatment: "例：婦人科で低用量ピルを処方され、生理痛が楽になりました。半年に一度、子宮筋腫の経過観察で通院しています。",
+        life: "例：体を冷やさないように、夏でも腹巻きをしています。PMSの時期は無理せず、好きなアロマを焚いてリラックスするようにしています。"
+    }
+},
+"子供に多い疾患": {
+    examples: ["かぜ", "アトピー性皮膚炎", "食物アレルギー", "喘息", "RSウイルス感染症"],
+    keywords: ["子供", "小児", "赤ちゃん", "かぜ", "発熱", "咳", "鼻水", "アトピー", "湿疹", "食物アレルギー", "喘息", "ぜんそく", "RSウイルス", "中耳炎", "溶連菌", "手足口病", "ヘルパンギーナ", "とびひ", "夜泣き", "おねしょ"],
+    recordFields: {
+        "お子さんの年齢": ["0歳", "1-2歳", "3-5歳(未就学児)", "6歳以上(小学生以上)"],
+        "主な症状": ["発熱", "咳・鼻水", "発疹・かゆみ", "嘔吐・下痢", "機嫌が悪い・ぐずる", "食欲がない", "耳を痛がる", "お腹を痛がる"],
+        "食事・水分の摂取状況": ["いつも通り摂れている", "少し食べむらがある", "ほとんど食べられない", "水分もあまり摂れない"],
+        "機嫌の様子": ["いつも通り", "少しぐずっている", "ずっと機嫌が悪い・泣いている"],
+        "診断された病名(わかれば)": []
+    },
+    contributePlaceholders: {
+        treatment: "例：小児科でRSウイルスと診断され、咳と鼻水の薬を処方されました。自宅でこまめに鼻水吸引器を使いました。",
+        life: "例：アレルギーの原因となる卵と乳製品を完全に除去した食事を作っています。保育園の先生と給食について細かく連携しています。"
+    }
+},
+"その他": {
+    examples: ["希少疾患", "原因不明の症状", "診断がつかない悩み"],
+    keywords: ["その他", "原因不明", "診断がつかない", "希少疾患", "指定難病", "ドクターショッピング", "セカンドオピニオン", "線維筋痛症", "複合的な症状"],
+    recordFields: {
+        "どのような症状・お悩みですか？": [],
+        "いつから症状が続いていますか？": [],
+        "これまでに受診した診療科": [],
+        "診断名(ついている場合)": [],
+        "一番困っていること": []
+    },
+    contributePlaceholders: {
+        treatment: "例：複数の病院を回りましたがはっきりした原因はわからず、今は症状を和らげる対症療法を続けています。",
+        life: "例：同じような症状を持つ方をSNSや患者会で探し、情報交換をしながら、自分に合う対処法を試しているところです。"
+    }
+}
+            };
+
+            // (DOM element selections remain mostly the same)
+            const allCategories = Object.keys(diseaseDatabase);
+            const screens = document.querySelectorAll('.screen');
+            const categoryGrid = document.getElementById('category-grid');
+            const confirmCategoryBtn = document.getElementById('confirm-category-btn');
+            const purposeTitle = document.getElementById('purpose-title');
+            const categorySearchInput = document.getElementById('category-search');
+            const talkSymptomInput = document.getElementById('talk-symptom');
+            const talkContentTextarea = document.getElementById('content-talk');
+            const recordDynamicFieldsContainer = document.getElementById('record-dynamic-fields');
+            const contributeFormContainer = document.getElementById('contribute-form-fields');
+            
+            const showScreen = (targetId) => {
+                 if (targetId === 'screen-supporter-mypage') {
+                    const userIsSupporter = state.isSupporter;
+                    const supporterBadge = document.getElementById('mypage-supporter-badge');
+                    const supporterGreeting = document.getElementById('mypage-supporter-greeting');
+                    const supporterInfoLink = document.getElementById('supporter-info-link-section');
+                    const supporterBenefits = document.getElementById('supporter-benefits-section');
+                    
+                    if (userIsSupporter) {
+                        if(supporterBadge) supporterBadge.classList.remove('hidden');
+                        if(supporterGreeting) supporterGreeting.classList.remove('hidden');
+                        if(supporterInfoLink) supporterInfoLink.style.display = 'none'; 
+                        if(supporterBenefits) supporterBenefits.classList.remove('hidden');
+                    } else {
+                        if(supporterBadge) supporterBadge.classList.add('hidden');
+                        if(supporterGreeting) supporterGreeting.classList.add('hidden');
+                        if(supporterInfoLink) supporterInfoLink.style.display = 'block';
+                        if(supporterBenefits) supporterBenefits.classList.add('hidden');
+                    }
+                } else if (targetId === 'screen-plus-one-buffet') {
+                    const container = document.getElementById('plus-one-buffet-container');
+                    container.innerHTML = ''; // Clear previous items
+                    const availableQuestions = Object.keys(plusOneQuestions).filter(key => {
+                        // If user chose 'contribute', don't ask the 'contribute' question again
+                        return state.currentFlow === 'contribute' ? key !== 'contribute' : true;
+                    });
+
+                    availableQuestions.forEach(key => {
+                        const questionData = plusOneQuestions[key];
+                        const card = document.createElement('div');
+                        card.className = "purpose-card cursor-pointer bg-white p-4 rounded-xl shadow-md border hover:border-green-400";
+                        card.innerHTML = `<p class="font-semibold text-gray-700">${questionData.label}</p>`;
+                        card.addEventListener('click', () => {
+                        openPlusOneModal(questionData);
+                        });
+                        container.appendChild(card);
+                    });
+                }
+
+                screens.forEach(s => s.classList.remove('active'));
+                const target = document.getElementById(targetId);
+                if (target) {
+                    target.classList.add('active');
+                    window.scrollTo({top:0, behavior:'smooth'});
+                }
+            };
+            
+            const createFieldHTML = (label, options, id) => {
+                let fieldHTML = `<label for="${id}" class="block text-sm font-bold text-gray-700 mb-2">${label}</label>`;
+                if(Array.isArray(options) && options.length > 0) {
+                     fieldHTML += `<select id="${id}" class="w-full p-3 border border-gray-300 rounded-lg bg-white">`;
+                     fieldHTML += `<option value="">選択してください</option>`;
+                     options.forEach(opt => fieldHTML += `<option value="${opt}">${opt}</option>`);
+                     fieldHTML += `</select>`;
+                } else {
+                    fieldHTML += `<input type="text" id="${id}" class="w-full p-3 border border-gray-300 rounded-lg" />`;
+                }
+                return fieldHTML;
+            }
+            
+            const updateFormsContent = () => {
+                const categoryData = diseaseDatabase[state.selectedCategory] || {};
+                
+                document.getElementById('talk-title').value = state.searchTerm;
+                document.getElementById('record-title').value = `${state.searchTerm}についての記録 ${new Date().toLocaleDateString()}`;
+
+                talkContentTextarea.placeholder = categoryData.contributePlaceholders?.life ? `例：${categoryData.contributePlaceholders.life}` : "ここに、あなたの想いを自由にお書きください。";
+                recordDynamicFieldsContainer.innerHTML = '';
+                const recordFields = categoryData.recordFields || {};
+                for(const label in recordFields) {
+                    const fieldDiv = document.createElement('div');
+                    fieldDiv.className = 'dynamic-form-field';
+                    const fieldId = `record-field-${label.replace(/\s/g, '-')}`;
+                    const options = recordFields[label];
+                    
+                    if(typeof options === 'object' && !Array.isArray(options)){ 
+                        const primaryKeys = Object.keys(options);
+                        fieldDiv.innerHTML = createFieldHTML(label, primaryKeys, fieldId);
+                        
+                        const subFieldDiv = document.createElement('div');
+                        subFieldDiv.className = 'dynamic-form-field mt-4';
+                        subFieldDiv.style.display = 'none'; 
+                        
+                        recordDynamicFieldsContainer.appendChild(fieldDiv);
+                        recordDynamicFieldsContainer.appendChild(subFieldDiv);
+
+                        fieldDiv.querySelector('select').addEventListener('change', (e) => {
+                            const selectedKey = e.target.value;
+                            if(selectedKey && options[selectedKey]){
+                                const subFieldId = `record-subfield-${selectedKey}`;
+                                subFieldDiv.innerHTML = createFieldHTML(`${selectedKey}の症状の種類`, options[selectedKey], subFieldId);
+                                subFieldDiv.style.display = 'block';
+                            } else {
+                                subFieldDiv.style.display = 'none';
+                                subFieldDiv.innerHTML = '';
+                            }
+                        });
+
+                    } else {
+                        fieldDiv.innerHTML = createFieldHTML(label, options, fieldId);
+                        recordDynamicFieldsContainer.appendChild(fieldDiv);
+                    }
+                }
+                
+                const placeholders = categoryData.contributePlaceholders || {};
+                
+                // 【STEP1】「経験を役立てる」フォームに表示するパーソナライズ項目のHTMLを生成
+                let dynamicRecordFieldsHTML = ''; 
+
+                for (const label in recordFields) {
+                    const fieldId = `contribute-field-${label.replace(/\s/g, '-')}`;
+                    const options = recordFields[label];
+                    
+                    dynamicRecordFieldsHTML += `<div class="dynamic-form-field">`; 
+                    
+                    if(typeof options === 'object' && !Array.isArray(options)){
+                        const primaryKeys = Object.keys(options);
+                        dynamicRecordFieldsHTML += createFieldHTML(label, primaryKeys, fieldId);
+                    } else {
+                        dynamicRecordFieldsHTML += createFieldHTML(label, options, fieldId);
+                    }
+                    
+                    dynamicRecordFieldsHTML += `</div>`;
+                }
+
+                // 【STEP2】生成したHTMLを組み込んで、contributeFormContainer の内容を定義
+                contributeFormContainer.innerHTML = `
+                    <div class="dynamic-form-field">
+                        <label for="contribute-title" class="block text-md font-bold text-gray-800 mb-1">タイトル</label>
+                        <input type="text" id="contribute-title" class="w-full p-3 border border-gray-300 rounded-lg" value="${state.searchTerm}" placeholder="例：私の〇〇治療体験記">
+                    </div>
+
+                    <div class="dynamic-form-field">
+                        <label for="contribute-disease-name" class="block text-md font-bold text-gray-800 mb-1">具体的な疾患名・症状名</label>
+                        <input type="text" id="contribute-disease-name" class="w-full p-3 border border-gray-300 rounded-lg" value="${state.searchTerm}" placeholder="例：胃がん、片頭痛、花粉症など">
+                    </div>
+                    <div class="dynamic-form-field">
+                        <label class="block text-md font-bold text-gray-800 mb-1">治療の有無</label>
+                        <div class="flex gap-4">
+                            <label class="flex items-center">
+                                <input type="radio" name="contribute-care-status" class="h-4 w-4 text-orange-600 border-gray-300 focus:ring-orange-500">
+                                <span class="ml-2 text-sm text-gray-700">治療中</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="contribute-care-status" class="h-4 w-4 text-orange-600 border-gray-300 focus:ring-orange-500">
+                                <span class="ml-2 text-sm text-gray-700">治癒・寛解</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="contribute-care-status" class="h-4 w-4 text-orange-600 border-gray-300 focus:ring-orange-500">
+                                <span class="ml-2 text-sm text-gray-700">治癒をしていない</span>
+                            </label>
+                        </div>
+                    </div>                    
+                    <div class="dynamic-form-field">
+                        <label class="block text-md font-bold text-gray-800 mb-1">医師による診断</label>
+                        <div class="flex gap-4">
+                            <label class="flex items-center">
+                                <input type="radio" name="contribute-diagnosis-status" class="h-4 w-4 text-orange-600 border-gray-300 focus:ring-orange-500">
+                                <span class="ml-2 text-sm text-gray-700">診断済み</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="contribute-diagnosis-status" class="h-4 w-4 text-orange-600 border-gray-300 focus:ring-orange-500">
+                                <span class="ml-2 text-sm text-gray-700">診断されていない / 自己判断</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    ${dynamicRecordFieldsHTML} 
+
+                    <div class="dynamic-form-field">
+                        <label for="treatment" class="block text-md font-bold text-gray-800 mb-1">これまでの治療やセルフケア</label>
+                        <p class="text-xs text-gray-500 mb-2">効果があったこと、なかったことなど、あなたの試行錯誤が貴重な情報になります。</p>
+                        <textarea id="treatment" rows="4" class="w-full p-3 border border-gray-300 rounded-lg" placeholder="${placeholders.treatment || ''}"></textarea>
+                    </div>
+                    <div class="dynamic-form-field">
+                        <label for="life-impact" class="block text-md font-bold text-gray-800 mb-1">生活や仕事への影響<span class="text-sm font-medium ml-2 text-gray-400">(任意)</span></label>
+                        <p class="text-xs text-gray-500 mb-2">日常生活での困りごとは、新しいサポートサービス開発のヒントになります。</p>
+                        <textarea id="life-impact" rows="3" class="w-full p-3 border border-gray-300 rounded-lg" placeholder="${placeholders.life || ''}"></textarea>
+                    </div>
+                    <div class="flex justify-end pt-4">
+                        <button class="nav-link btn-primary font-bold py-3 px-6 rounded-full transition shadow-md" data-target="screen-plus-one-buffet">この内容で体験を共有する</button>
+                    </div>`;
+                    contributeFormContainer.querySelector('.nav-link').addEventListener('click', (e) => { 
+                    e.preventDefault(); 
+                    state.supporterProgress.contributePost = 1;
+                    state.isSupporter = true;
+                    showScreen(e.currentTarget.dataset.target); 
+                });
+            };
+
+            if (categoryGrid) { allCategories.forEach(cat => { const btn = document.createElement('button'); btn.className = 'category-btn bg-white p-3 rounded-xl shadow-md border flex flex-col items-center justify-center text-center'; btn.dataset.category = cat; btn.innerHTML = `<span class="font-semibold text-sm text-gray-700">${cat}</span>`; btn.addEventListener('click', (e) => handleCategoryClick(e.currentTarget)); categoryGrid.appendChild(btn); }); }
+            const handleCategoryClick = (clickedBtn) => { const categoryName = clickedBtn.dataset.category; const isSelected = clickedBtn.classList.contains('selected'); categoryGrid.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('selected')); if (isSelected) { state.selectedCategory = null; document.getElementById('disease-examples-container').style.display = 'none'; confirmCategoryBtn.disabled = true; } else { clickedBtn.classList.add('selected'); state.selectedCategory = categoryName; displayDiseaseExamples(categoryName); confirmCategoryBtn.disabled = false; } };
+            const displayDiseaseExamples = (categoryName) => { const list = document.getElementById('disease-examples-list'); list.innerHTML = ''; const examples = (diseaseDatabase[categoryName]?.examples) || []; if (examples.length > 0) { examples.forEach(ex => { const span = document.createElement('span'); span.className = 'disease-example-item'; span.textContent = ex; list.appendChild(span); }); document.getElementById('disease-examples-container').style.display = 'block'; } else { document.getElementById('disease-examples-container').style.display = 'none'; } };
+            if(confirmCategoryBtn) { confirmCategoryBtn.addEventListener('click', () => { if (state.selectedCategory) { state.searchTerm = categorySearchInput.value.trim(); purposeTitle.innerHTML = `<span class="text-orange-500 font-bold">「${state.selectedCategory}」</span>について`; updateFormsContent(); showScreen('screen-purpose-selection'); } }); }
+            let searchTimeout; const toHiragana = (str) => str.replace(/[\u30a1-\u30f6]/g, match => String.fromCharCode(match.charCodeAt(0) - 0x60)); if(categorySearchInput) { categorySearchInput.addEventListener('input', (e) => { clearTimeout(searchTimeout); const searchTerm = e.target.value.toLowerCase().trim(); const aiStatus = document.getElementById('ai-status'); if (!searchTerm) { resetCategoryView(); return; } aiStatus.style.opacity = '1'; searchTimeout = setTimeout(() => { const matches = new Set(); for (const category in diseaseDatabase) { const data = diseaseDatabase[category]; const hiraganaSearchTerm = toHiragana(searchTerm); const keywords = data.keywords.map(k => toHiragana(k.toLowerCase())); if (keywords.some(kw => kw.includes(hiraganaSearchTerm))) { matches.add(category); } } updateCategoryViewWithSearchResults(Array.from(matches)); aiStatus.style.opacity = '0'; }, 800); }); }
+            const updateCategoryViewWithSearchResults = (matches) => { categoryGrid.querySelectorAll('.category-btn').forEach(btn => { const categoryName = btn.dataset.category; btn.classList.remove('selected', 'suggested', 'dimmed'); if(matches.length > 0) { if (matches.includes(categoryName)) { btn.classList.add('suggested'); } else { btn.classList.add('dimmed'); } } }); };
+            const resetCategoryView = () => { categoryGrid.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('selected', 'suggested', 'dimmed')); state.selectedCategory = null; document.getElementById('disease-examples-container').style.display = 'none'; confirmCategoryBtn.disabled = true; document.getElementById('ai-status').style.opacity = '0'; };
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = e.currentTarget.dataset.target;
+
+                    // もし遷移先がマイページ（screen-supporter-mypage）だったら
+                    if (targetId === 'screen-supporter-mypage') {
+                        // profile.htmlへページを移動させる
+                        window.location.href = 'profile';
+                    } else {
+                        // それ以外のボタンは、これまで通りページ内遷移を行う
+                        showScreen(targetId);
+                    }
+                });
+            });
+            document.querySelectorAll('.purpose-card').forEach(card => card.addEventListener('click', (e) => { const flow = e.currentTarget.dataset.flow; state.currentFlow = flow; if(flow==='talk')showScreen('screen-talk-post');else if(flow==='record')showScreen('screen-record-post');else if(flow==='contribute')showScreen('screen-contribute-post');}));
+            
+            // Mood selector logic
+            document.querySelectorAll('.mood-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    document.querySelectorAll('.mood-btn').forEach(btn => btn.classList.remove('selected'));
+                    e.currentTarget.classList.add('selected');
+                });
+            });
+
+            // My Page Tab Logic
+            document.querySelectorAll('#screen-supporter-mypage .mypage-sub-tab').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    document.querySelectorAll('#screen-supporter-mypage .mypage-sub-tab').forEach(t => t.classList.remove('active'));
+                    e.currentTarget.classList.add('active');
+                    const targetContentId = e.currentTarget.dataset.subtab + '-content';
+                    document.querySelectorAll('#screen-supporter-mypage .mypage-sub-content').forEach(content => {
+                        content.classList.add('hidden');
+                        if (content.id === targetContentId) {
+                            content.classList.remove('hidden');
+                        }
+                    });
+                });
+            });
+             document.querySelectorAll('#screen-supporter-mypage .feed-tab').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    document.querySelectorAll('#screen-supporter-mypage .feed-tab').forEach(t => t.classList.remove('active'));
+                    e.currentTarget.classList.add('active');
+                    const targetContentId = e.currentTarget.dataset.tab + '-content';
+                    document.querySelectorAll('.main-tab-content').forEach(content => {
+                        content.classList.add('hidden');
+                        if (content.id === targetContentId) {
+                            content.classList.remove('hidden');
+                        }
+                    });
+                });
+            });
+
+            // Promise Modal Logic
+            const promiseModal = document.getElementById('promise-modal'); 
+            const openPromiseModal = () => promiseModal.classList.add('active'); 
+            const closePromiseModal = () => promiseModal.classList.remove('active'); 
+            document.getElementById('open-promise-modal-from-category').addEventListener('click', openPromiseModal); 
+            document.getElementById('close-promise-modal').addEventListener('click', closePromiseModal); 
+            document.getElementById('understand-promise-btn').addEventListener('click', closePromiseModal); 
+            promiseModal.addEventListener('click', (e) => { if (e.target === promiseModal) closePromiseModal(); });
+
+            // Supporter Info Modal Logic
+            const supporterConditions = [
+                { id: 'register', text: 'アカウント登録をする', current: state.supporterProgress.register, goal: supporterGoals.register, icon: 'fa-user-check', actionText: '達成済み', actionTarget: null, completed: true },
+                { id: 'setCategory', text: '興味のあるカテゴリを設定する', current: state.supporterProgress.setCategory, goal: supporterGoals.setCategory, icon: 'fa-tags', actionText: '設定する', actionTarget: '#', completed: false },
+                { id: 'viewPost', text: '他の方のうちあけを見る', current: state.supporterProgress.viewPost, goal: supporterGoals.viewPost, icon: 'fa-eye', actionText: '見にいく', actionTarget: 'latest', completed: false },
+                { id: 'giveEmpathy', text: '他の方のうちあけに共感ボタンを押す', current: state.supporterProgress.giveEmpathy, goal: supporterGoals.giveEmpathy, icon: 'fa-heart', actionText: '共感しにいく', actionTarget: 'latest', completed: false },
+                { id: 'contributePost', text: '「経験を役立てる」投稿をする', current: state.supporterProgress.contributePost, goal: supporterGoals.contributePost, icon: 'fa-hand-holding-heart', actionText: '投稿する', actionTarget: 'screen-category-selection', isPost: true, completed: false },
+                { id: 'giveFeedback', text: 'サービス改善のお声をいただく', current: state.supporterProgress.giveFeedback, goal: supporterGoals.giveFeedback, icon: 'fa-lightbulb', actionText: '意見を送る', actionTarget: 'feedback-modal', completed: false }
+            ];
+            
+            const supporterModal = document.getElementById('supporter-info-modal');
+            const supporterConditionsList = document.getElementById('supporter-conditions-list');
+            const openSupporterModal = () => {
+                supporterConditionsList.innerHTML = ''; // Clear previous list
+                supporterConditions.forEach(cond => {
+                    const isCompleted = cond.current >= cond.goal;
+                    const progressPercent = Math.min((cond.current / cond.goal) * 100, 100);
+                    const completedClass = isCompleted ? 'completed' : '';
+                    const actionButtonHTML = isCompleted 
+                        ? `<button class="action-btn text-sm font-bold py-2 px-4 rounded-full transition" disabled><i class="fas fa-check-circle mr-2"></i>達成済み</button>`
+                        : `<button class="action-btn text-sm font-bold bg-orange-100 text-orange-700 hover:bg-orange-200 py-2 px-4 rounded-full transition" data-action="${cond.id}">${cond.actionText}</button>`;
+
+                    const conditionHTML = `
+                        <div class="supporter-condition bg-gray-50 p-4 rounded-lg ${completedClass}">
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                                <p class="text-sm font-semibold text-gray-800 w-full sm:w-auto"><i class="fas ${cond.icon} fa-fw mr-2 text-gray-500"></i>${cond.text}</p>
+                                <div class="w-full sm:w-auto flex-shrink-0 mt-2 sm:mt-0">${actionButtonHTML}</div>
+                            </div>
+                            ${!isCompleted ? `
+                            <div class="flex justify-between items-center text-xs text-gray-500 mt-2">
+                                <div class="progress-bar w-full rounded-full h-1.5 flex-1 mr-2"><div class="progress-bar-inner rounded-full h-1.5" style="width: ${progressPercent}%"></div></div>
+                                <p class="font-medium whitespace-nowrap">あと ${cond.goal - cond.current} 回</p>
+                            </div>` : ''}
+                        </div>`;
+                    supporterConditionsList.innerHTML += conditionHTML;
+                });
+                
+                // Add event listeners to the new buttons
+                supporterConditionsList.querySelectorAll('.action-btn[data-action]').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const actionId = e.currentTarget.dataset.action;
+                        const condition = supporterConditions.find(c => c.id === actionId);
+                        if(condition) {
+                           closeSupporterModal();
+                           if(condition.actionTarget === 'latest') {
+                               showScreen('screen-supporter-mypage');
+                               // Manually click the 'latest' tab
+                               document.querySelector('.feed-tab[data-tab="latest"]').click();
+                           } else if (condition.actionTarget === 'feedback-modal') {
+                               openFeedbackModal();
+                           } else if (condition.isPost) {
+                                showScreen('screen-category-selection');
+                                // Could add logic to pre-select "contribute" later
+                           }
+                           else {
+                               // For now, other actions just close the modal
+                           }
+                        }
+                    });
+                });
+                
+                supporterModal.classList.add('active');
+            };
+            const closeSupporterModal = () => supporterModal.classList.remove('active');
+            document.getElementById('open-supporter-info-modal').addEventListener('click', openSupporterModal);
+            document.getElementById('close-supporter-info-modal').addEventListener('click', closeSupporterModal);
+            supporterModal.addEventListener('click', (e) => { if (e.target === supporterModal) closeSupporterModal(); });
+
+            // Feedback Modal Logic
+            const feedbackModal = document.getElementById('feedback-modal');
+            const openFeedbackModal = () => feedbackModal.classList.add('active');
+            const closeFeedbackModal = () => {
+                feedbackModal.classList.remove('active');
+                setTimeout(() => {
+                    document.getElementById('feedback-form-content').classList.remove('hidden');
+                    document.getElementById('feedback-thanks-content').classList.add('hidden');
+                    document.getElementById('feedback-modal').querySelector('form')?.reset();
+                }, 300);
+            };
+            document.getElementById('open-feedback-modal').addEventListener('click', openFeedbackModal);
+            document.getElementById('close-feedback-modal').addEventListener('click', closeFeedbackModal);
+            document.getElementById('close-thanks-btn').addEventListener('click', closeFeedbackModal);
+            feedbackModal.addEventListener('click', (e) => { if (e.target === feedbackModal) closeFeedbackModal(); });
+            document.getElementById('feedback-form-content').addEventListener('submit', (e) => {
+                 e.preventDefault();
+                 document.getElementById('feedback-form-content').classList.add('hidden');
+                 document.getElementById('feedback-thanks-content').classList.remove('hidden');
+                 state.supporterProgress.giveFeedback = 1;
+            });
+            
+             // Plus One Logic - Fix the whiteout bug by using nav-link class
+            document.querySelectorAll('#screen-plus-one .nav-link').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showScreen(e.currentTarget.dataset.target);
+                });
+            });
+
+
+            showScreen('screen-category-selection');
+            // --- Plus One Question Modal Logic ---
+            const plusOneModal = document.getElementById('plus-one-question-modal');
+            const plusOneModalBody = document.getElementById('plus-one-modal-body');
+            const plusOneForm = document.getElementById('plus-one-form-content');
+            const plusOneThanks = document.getElementById('plus-one-thanks-content');
+            const closePlusOneModalBtn = document.getElementById('close-plus-one-modal');
+            const cancelPlusOneBtn = document.getElementById('cancel-plus-one-btn');
+            const closePlusOneThanksBtn = document.getElementById('close-plus-one-thanks-btn');
+
+            const openPlusOneModal = (questionData) => {
+                plusOneForm.classList.remove('hidden');
+                plusOneThanks.classList.add('hidden');
+                
+                let inputHTML = '';
+                if (questionData.type === 'textarea') {
+                    inputHTML = `<textarea id="${questionData.id}" rows="5" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-400" placeholder="${questionData.placeholder}"></textarea>`;
+                } else {
+                    inputHTML = `<input type="text" id="${questionData.id}" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-400" placeholder="${questionData.placeholder}">`;
+                }
+
+                plusOneModalBody.innerHTML = `
+                    <label for="${questionData.id}" class="block text-md font-bold text-gray-800">${questionData.label}</label>
+                    ${inputHTML}
+                `;
+                plusOneModal.classList.add('active');
+            };
+
+            const closePlusOneModal = () => {
+                plusOneModal.classList.remove('active');
+            };
+
+            plusOneForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                // 本実装の際は、ここで入力内容をうちあけDBに保存する処理を入れる必要があるかと思います。
+                plusOneForm.classList.add('hidden');
+                plusOneThanks.classList.remove('hidden');
+            });
+
+            closePlusOneModalBtn.addEventListener('click', closePlusOneModal);
+            cancelPlusOneBtn.addEventListener('click', closePlusOneModal);
+            closePlusOneThanksBtn.addEventListener('click', closePlusOneModal);
+            plusOneModal.addEventListener('click', (e) => {
+                if (e.target === plusOneModal) {
+                    closePlusOneModal();
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
