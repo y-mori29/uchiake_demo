@@ -49,6 +49,125 @@
         .toggle-checkbox:checked + .toggle-label {
             background-color: #f97316;
         }
+            /* --- プロフィール充実度メーター --- */
+        .progress-bar-bg {
+            background-color: #e5e7eb;
+        }
+        .progress-bar-fill {
+            background-color: #f59e0b; /* amber-500 */
+            transition: width 0.5s ease-in-out;
+        }
+
+        /* --- うちあけカード用のスタイル --- */
+        .uchiake-card {
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            position: relative;
+        }
+        .uchiake-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.07);
+        }
+        .uchiake-card.selected {
+            border-color: #f97316; /* orange-500 */
+            background-color: #fff7ed; /* orange-50 */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+        }
+        .uchiake-card.selected .icon-container {
+            background-color: #f97316;
+            color: white;
+        }
+        .uchiake-card.max-selected:not(.selected) {
+            cursor: not-allowed;
+            opacity: 0.6;
+            background-color: #f8fafc;
+            border-color: #e5e7eb;
+            transform: translateY(0);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .selected-checkmark {
+            display: none;
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            background-color: #22c55e;
+            color: white;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        .uchiake-card.selected .selected-checkmark {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .custom-card-remove-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 22px;
+            height: 22px;
+            background-color: #ef4444;
+            color: white;
+            border-radius: 50%;
+            border: 2px solid white;
+            font-size: 12px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .uchiake-card.custom-card:hover .custom-card-remove-btn {
+            opacity: 1;
+        }
+        
+        /* --- タグ入力 --- */
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            background-color: #14b8a6; /* teal-500 */
+            color: white;
+            padding: 4px 8px;
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .tag-remove-btn {
+            margin-left: 8px;
+            width: 16px;
+            height: 16px;
+            background-color: rgba(0,0,0,0.2);
+            border-radius: 50%;
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+        }
+
+        /* --- きっかけボタン --- */
+        .prompt-button {
+            transition: all 0.2s ease-in-out;
+        }
+        .prompt-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+
+
+        /* --- モーダル --- */
+        .modal-overlay {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-content {
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
     </style>
 </head>
 <body class="text-gray-800">
@@ -77,7 +196,17 @@
     <main class="pt-[68px] pb-24">
         <div class="container mx-auto max-w-3xl px-4 py-8">
             <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-8">プロフィール設定</h1>
-
+            <!-- プロフィール充実度メーター -->
+            <section class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-semibold text-gray-700">プロフィール充実度</h3>
+                    <span id="progress-percent" class="font-bold text-green-600 text-lg">0%</span>
+                </div>
+                <div class="progress-bar-bg w-full rounded-full h-3">
+                    <div id="progress-bar" class="progress-bar-fill h-3 rounded-full" style="width: 0%;"></div>
+                </div>
+                <p id="progress-message" class="text-xs text-gray-500 mt-2">プロフィールを充実させて、他の人との繋がりを深めましょう！</p>
+            </section>
             <!-- 基本プロフィール -->
             <section class="setting-card bg-white rounded-xl shadow-lg p-6 sm:p-8 mb-8">
                 <h2 class="mb-6">基本プロフィール</h2>
@@ -99,12 +228,80 @@
                     </div>
                     <!-- 自己紹介 -->
                     <div>
-                        <label for="bio" class="block text-sm font-semibold text-gray-700 mb-2">自己紹介</label>
-                        <textarea id="bio" rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400" placeholder="同じ悩みを持つ方に向けて自己紹介を書きましょう">ここに自己紹介文が入ります。同じ悩みを持つ方と情報交換したいです。よろしくお願いします。</textarea>
+                        <div class="flex justify-between items-end mb-2">
+                            <label for="bio" class="block text-sm font-semibold text-gray-700">自己紹介</label>
+                            <span class="text-xs text-gray-500">何を書くか迷ったら、以下の【きっかけボタン】から書き進めてください</span>
+                        </div>
+                        <!-- きっかけボタン -->
+                        <div id="prompt-buttons" class="flex flex-wrap gap-2 mb-3">
+                            <button class="prompt-button text-xs font-semibold bg-sky-100 text-sky-700 py-1 px-3 rounded-full" data-topic="me">わたしのこと</button>
+                            <button class="prompt-button text-xs font-semibold bg-rose-100 text-rose-700 py-1 px-3 rounded-full" data-topic="hobby">好きなこと・趣味</button>
+                            <button class="prompt-button text-xs font-semibold bg-teal-100 text-teal-700 py-1 px-3 rounded-full" data-topic="health">病気や症状について</button>
+                            <button class="prompt-button text-xs font-semibold bg-amber-100 text-amber-700 py-1 px-3 rounded-full" data-topic="community">うちあけで話したいこと</button>
+                        </div>
+                        <textarea id="bio" rows="8" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400" placeholder="ボタンを押して書き始めてみましょう！もちろん自由入力も歓迎です。"></textarea>
                     </div>
                 </div>
                 <div class="text-right mt-6">
                     <button class="bg-orange-500 text-white font-bold py-2 px-6 rounded-full hover:bg-orange-600 transition shadow">更新する</button>
+                </div>
+            </section>
+                
+            <!-- わたしのからだ記録 Section -->
+            <section class="setting-card bg-white rounded-xl shadow-lg p-6 sm:p-8 mb-8">
+                <h2 class="mb-2 font-klee-one text-teal-600">わたしのからだ記録</h2>
+                <p class="text-sm text-gray-600 mb-6">
+                    「うちあけ」として投稿する前に、まずはあなたのことについて教えてください。同じ悩みを持つ方と繋がるきっかけになります。
+                </p>
+                <div class="mb-6">
+                    <h3 class="text-md font-semibold text-gray-800 mb-2">疾患名・症状</h3>
+                    <div id="tags-container-disease" class="flex flex-wrap gap-2 mb-2 p-2 border rounded-lg min-h-[48px] bg-gray-50"></div>
+                    <div class="flex gap-2">
+                        <input type="text" id="tag-input-disease" class="flex-grow p-2 border border-gray-300 rounded-lg" placeholder="例：関節リウマチ" aria-label="疾患名・症状を入力">
+                        <button data-input="tag-input-disease" data-container="tags-container-disease" class="add-tag-btn bg-teal-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-teal-600 transition">追加</button>
+                    </div>
+                </div>
+                <div class="mb-6">
+                    <h3 class="text-md font-semibold text-gray-800 mb-2">受けている治療</h3>
+                    <div id="tags-container-treatment" class="flex flex-wrap gap-2 mb-2 p-2 border rounded-lg min-h-[48px] bg-gray-50"></div>
+                    <div class="flex gap-2">
+                        <input type="text" id="tag-input-treatment" class="flex-grow p-2 border border-gray-300 rounded-lg" placeholder="例：薬物療法" aria-label="受けている治療を入力">
+                        <button data-input="tag-input-treatment" data-container="tags-container-treatment" class="add-tag-btn bg-teal-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-teal-600 transition">追加</button>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-md font-semibold text-gray-800 mb-2">普段のケア</h3>
+                    <div id="tags-container-care" class="flex flex-wrap gap-2 mb-2 p-2 border rounded-lg min-h-[48px] bg-gray-50"></div>
+                    <div class="flex gap-2">
+                        <input type="text" id="tag-input-care" class="flex-grow p-2 border border-gray-300 rounded-lg" placeholder="例：週2回のストレッチ" aria-label="普段のケアを入力">
+                        <button data-input="tag-input-care" data-container="tags-container-care" class="add-tag-btn bg-teal-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-teal-600 transition">追加</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- うちあけカード Section -->
+            <section class="setting-card bg-white rounded-xl shadow-lg p-6 sm:p-8 mb-8">
+                <h2 class="mb-2 font-klee-one text-orange-600">うちあけカードで人柄を伝えよう</h2>
+                <p class="text-sm text-gray-600 mb-6">タップで選ぶだけで、あなたのことがもっと伝わります。他のユーザーとの温かい交流のきっかけにもなります。</p>
+                <div class="mb-8">
+                    <h3 class="text-md font-semibold text-gray-800 mb-1">あなたが大切にしていることは？</h3>
+                    <p class="text-xs text-gray-500 mb-4">最大3つまで選べます</p>
+                    <div id="value-cards" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+                </div>
+                <div class="mb-8">
+                     <h3 class="text-md font-semibold text-gray-800 mb-1">気分が落ち込んだ時、どうすることが多いですか？</h3>
+                     <p class="text-xs text-gray-500 mb-4">あなたの対処法を教えてください（最大3つ）</p>
+                     <div id="coping-cards" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+                </div>
+                <div class="mb-8">
+                     <h3 class="text-md font-semibold text-gray-800 mb-1">心と体のセルフケアで、心がけていることは？</h3>
+                     <p class="text-xs text-gray-500 mb-4">最大3つまで選べます</p>
+                     <div id="selfcare-cards" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+                </div>
+                <div>
+                    <h3 class="text-md font-semibold text-gray-800 mb-1">他のユーザーと、どのように関わりたいですか？</h3>
+                    <p class="text-xs text-gray-500 mb-4">1つだけ選んでください</p>
+                    <div id="stance-cards" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
                 </div>
             </section>
 
@@ -196,19 +393,25 @@
                     </div>
                 </div>
             </section>
-            
-            <!-- 危険ゾーン -->
-            <section class="setting-card bg-white rounded-xl shadow-lg p-6 sm:p-8 border-2 border-red-300">
-                 <h2 class="mb-6 text-red-600">その他</h2>
-                 <div class="flex flex-col sm:flex-row justify-between items-center">
-                    <div>
-                        <p class="font-semibold text-gray-800">退会手続き</p>
-                        <p class="text-sm text-gray-600 mt-1">アカウントを削除すると、すべてのデータが消去され、復元できません。</p>
-                    </div>
-                    <button class="w-full sm:w-auto mt-3 sm:mt-0 bg-red-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-red-600 transition text-sm">退会する</button>
-                </div>
-            </section>
+            <!-- 保存ボタン -->
+            <div class="mt-10 text-center">
+                 <button class="bg-orange-500 text-white font-bold py-3 px-10 rounded-full hover:bg-orange-600 transition shadow-lg text-lg">
+                    <i class="fas fa-save mr-2"></i>すべての設定を保存する
+                </button>
+            </div><br><br>
 
+            <!-- 自由記述カード用モーダル -->
+            <div id="custom-card-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+                <div id="custom-card-overlay" class="modal-overlay absolute inset-0 bg-black bg-opacity-50"></div>
+                <div id="custom-card-content" class="modal-content relative bg-white rounded-xl shadow-2xl w-11/12 max-w-sm p-6 transform scale-95 opacity-0">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">自由記述カード作成</h3>
+            <input type="text" id="custom-card-input" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400" placeholder="10文字以内で入力" maxlength="10">
+            <div class="flex justify-end gap-3 mt-4">
+                <button id="custom-card-cancel" class="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-full hover:bg-gray-300 transition text-sm">キャンセル</button>
+                <button id="custom-card-save" class="bg-orange-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-orange-600 transition text-sm">保存する</button>
+                </div>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -217,5 +420,281 @@
         <div class="text-center text-xs sm:text-sm text-gray-500">&copy; 2025 うちあけ All rights reserved.</div>
     </footer>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- うちあけカードのデータ ---
+            const cardData = {
+                values: [ { id: 'value-family', icon: 'fa-solid fa-people-roof', text: '家族との時間' }, { id: 'value-hobby', icon: 'fa-solid fa-gamepad', text: '趣味を楽しむ' }, { id: 'value-rest', icon: 'fa-solid fa-bed', text: 'ゆっくり休む' }, { id: 'value-food', icon: 'fa-solid fa-utensils', text: '美味しい食事' }, { id: 'value-friends', icon: 'fa-solid fa-user-group', text: '友人との交流' }, { id: 'value-work', icon: 'fa-solid fa-briefcase', text: '仕事・学び' }, ],
+                coping: [ { id: 'coping-music', icon: 'fa-solid fa-music', text: '音楽を聴く' }, { id: 'coping-tea', icon: 'fa-solid fa-mug-hot', text: '温かい飲み物' }, { id: 'coping-talk', icon: 'fa-solid fa-comments', text: '誰かに話す' }, { id: 'coping-movie', icon: 'fa-solid fa-film', text: '映画・動画' }, { id: 'coping-sleep', icon: 'fa-solid fa-moon', text: 'とにかく寝る' }, { id: 'coping-nature', icon: 'fa-solid fa-leaf', text: '自然に触れる' }, ],
+                selfcare: [ { id: 'selfcare-stretch', icon: 'fa-solid fa-person-stretching', text: 'ストレッチ' }, { id: 'selfcare-bath', icon: 'fa-solid fa-bath', text: 'ゆっくり入浴' }, { id: 'selfcare-sun', icon: 'fa-solid fa-sun', text: '日光浴' }, { id: 'selfcare-aroma', icon: 'fa-solid fa-wind', text: 'アロマを焚く' }, { id: 'selfcare-journal', icon: 'fa-solid fa-book-open', text: '日記を書く' }, { id: 'selfcare-digital-detox', icon: 'fa-solid fa-mobile-screen-button', text: 'スマホ断ち' }, ],
+                stance: [ { id: 'stance-listen', icon: 'fa-solid fa-ear-listen', text: '話を聞いてほしい' }, { id: 'stance-exchange', icon: 'fa-solid fa-lightbulb', text: '情報交換したい' }, { id: 'stance-watch', icon: 'fa-solid fa-eye', text: 'そっと見守って' }, ]
+            };
+
+            function renderCards(containerId, data, isMultiSelect = false) {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                container.innerHTML = '';
+                data.forEach(item => {
+                    const card = document.createElement('div');
+                    card.id = item.id;
+                    card.className = 'uchiake-card bg-white p-3 rounded-lg shadow-sm border flex flex-col items-center justify-center text-center';
+                    card.innerHTML = `<div class="selected-checkmark"><i class="fas fa-check text-xs"></i></div><div class="icon-container w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 text-xl mb-2 transition-colors"><i class="${item.icon}"></i></div><span class="text-xs font-semibold text-gray-700">${item.text}</span>`;
+                    container.appendChild(card);
+                });
+                if (isMultiSelect) {
+                    const addCard = document.createElement('div');
+                    addCard.className = 'uchiake-card add-custom-card bg-gray-50 border-dashed p-3 rounded-lg shadow-sm border-2 flex flex-col items-center justify-center text-center text-gray-400 hover:border-orange-400 hover:text-orange-500';
+                    addCard.dataset.targetContainer = containerId;
+                    addCard.innerHTML = `<div class="icon-container w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-lg mb-2"><i class="fa-solid fa-plus"></i></div><span class="text-xs font-semibold">自由記述</span>`;
+                    container.appendChild(addCard);
+                }
+            }
+
+            function setupMultiSelect(containerId, maxSelection) {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                container.addEventListener('click', (e) => {
+                    const addCardButton = e.target.closest('.add-custom-card');
+                    if (addCardButton) {
+                        openCustomCardModal(addCardButton.dataset.targetContainer);
+                        return;
+                    }
+
+                    const card = e.target.closest('.uchiake-card');
+                    if (!card) return;
+
+                    if (e.target.closest('.custom-card-remove-btn')) { 
+                        card.remove(); 
+                        updateProgress(); 
+                        updateMultiSelectState(containerId, maxSelection); 
+                        return; 
+                    }
+                    
+                    const selectedCards = container.querySelectorAll('.selected');
+                    if (card.classList.contains('selected')) { 
+                        card.classList.remove('selected'); 
+                    } else { 
+                        if (selectedCards.length < maxSelection) { 
+                            card.classList.add('selected'); 
+                        } 
+                    }
+                    updateMultiSelectState(containerId, maxSelection);
+                    updateProgress();
+                });
+            }
+
+            function updateMultiSelectState(containerId, maxSelection) {
+                 const container = document.getElementById(containerId);
+                 if (!container) return;
+                 const newSelectedCount = container.querySelectorAll('.selected').length;
+                 container.querySelectorAll('.uchiake-card').forEach(c => {
+                    if (newSelectedCount >= maxSelection && !c.classList.contains('selected')) { c.classList.add('max-selected'); } else { c.classList.remove('max-selected'); }
+                });
+            }
+
+            function setupSingleSelect(containerId) {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                container.addEventListener('click', (e) => {
+                    const card = e.target.closest('.uchiake-card');
+                    if (!card) return;
+                    container.querySelectorAll('.uchiake-card').forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    updateProgress();
+                });
+            }
+
+            const customCardModal = document.getElementById('custom-card-modal');
+            const customCardOverlay = document.getElementById('custom-card-overlay');
+            const customCardContent = document.getElementById('custom-card-content');
+            const customCardInput = document.getElementById('custom-card-input');
+            const customCardSaveBtn = document.getElementById('custom-card-save');
+            const customCardCancelBtn = document.getElementById('custom-card-cancel');
+            let currentTargetContainerId = null;
+
+            function openCustomCardModal(targetContainerId) {
+                currentTargetContainerId = targetContainerId;
+                customCardInput.value = '';
+                customCardModal.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+                setTimeout(() => { customCardOverlay.classList.remove('opacity-0'); customCardContent.classList.remove('scale-95', 'opacity-0'); }, 10);
+            }
+
+            function closeCustomCardModal() {
+                customCardOverlay.classList.add('opacity-0');
+                customCardContent.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => { customCardModal.classList.add('hidden'); document.body.classList.remove('overflow-hidden'); }, 300);
+            }
+
+            customCardSaveBtn.addEventListener('click', () => {
+                const text = customCardInput.value.trim();
+                if (text && currentTargetContainerId) {
+                    const container = document.getElementById(currentTargetContainerId);
+                    const newCard = document.createElement('div');
+                    newCard.className = 'uchiake-card custom-card bg-white p-3 rounded-lg shadow-sm border flex flex-col items-center justify-center text-center selected';
+                    newCard.innerHTML = `
+                        <div class="selected-checkmark"><i class="fas fa-check text-xs"></i></div>
+                        <button class="custom-card-remove-btn">&times;</button>
+                        <div class="icon-container w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 text-xl mb-2 transition-colors">
+                            <i class="fa-solid fa-pencil"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-gray-700">${text}</span>
+                    `;
+                    container.insertBefore(newCard, container.querySelector('.add-custom-card'));
+                    const maxSelection = (currentTargetContainerId === 'stance-cards') ? 1 : 3;
+                    updateMultiSelectState(currentTargetContainerId, maxSelection);
+                    updateProgress();
+                    closeCustomCardModal();
+                }
+            });
+            customCardCancelBtn.addEventListener('click', closeCustomCardModal);
+            customCardOverlay.addEventListener('click', closeCustomCardModal);
+
+            function setupTagInput(button) {
+                const inputId = button.dataset.input;
+                const containerId = button.dataset.container;
+                const inputEl = document.getElementById(inputId);
+                const containerEl = document.getElementById(containerId);
+
+                function addTag() {
+                    const value = inputEl.value.trim();
+                    if (value) {
+                        const tag = document.createElement('span');
+                        tag.className = 'tag';
+                        tag.textContent = value;
+                        const removeBtn = document.createElement('button');
+                        removeBtn.className = 'tag-remove-btn';
+                        removeBtn.innerHTML = '&times;';
+                        removeBtn.onclick = () => {
+                            tag.remove();
+                            updateProgress();
+                        };
+                        tag.appendChild(removeBtn);
+                        containerEl.appendChild(tag);
+                        inputEl.value = '';
+                        updateProgress();
+                    }
+                }
+                button.addEventListener('click', addTag);
+                inputEl.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addTag();
+                    }
+                });
+            }
+            document.querySelectorAll('.add-tag-btn').forEach(setupTagInput);
+
+            // --- きっかけボタンのロジック ---
+            const bioTextarea = document.getElementById('bio');
+            const promptButtons = document.getElementById('prompt-buttons');
+            
+            function generatePromptText(topic) {
+                let text = '';
+                switch(topic) {
+                    case 'me':
+                        text = '## わたしのこと\n・（ここに自己紹介を書いてみましょう）\n・（休日の過ごし方など）\n';
+                        break;
+                    case 'hobby':
+                        const hobbyCards = Array.from(document.querySelectorAll('#value-cards .selected, #coping-cards .selected, #selfcare-cards .selected'));
+                        const hobbies = hobbyCards.map(c => `「${c.querySelector('span').textContent}」`).join('、');
+                        text = '## 好きなこと・趣味\n';
+                        if (hobbies) {
+                            text += `（${hobbies}がお好きなんですね！)\n`;
+                        }
+                        text += '・（好きなことについて、自由に書いてみましょう）\n';
+                        break;
+                    case 'health':
+                        const diseaseTags = Array.from(document.querySelectorAll('#tags-container-disease .tag')).map(t => `「${t.textContent.replace('×','').trim()}」`).join('、');
+                        text = '## 病気や症状について\n';
+                        if (diseaseTags) {
+                             text += `（${diseaseTags}について、差し支えのない範囲で教えてください）\n`;
+                        }
+                        text += '・いつ頃からですか？\n・どんな時に症状が出ますか？\n・普段どんな工夫をしていますか？\n';
+                        break;
+                    case 'community':
+                        const stanceCard = document.querySelector('#stance-cards .selected span');
+                        text = '## うちあけで話したいこと\n';
+                         if (stanceCard) {
+                             text += `（「${stanceCard.textContent}」と考えているんですね！）\n`;
+                        }
+                        text += '・（この場所で、どんな風に過ごしたいですか？）\n';
+                        break;
+                }
+                return text;
+            }
+
+            promptButtons.addEventListener('click', (e) => {
+                const button = e.target.closest('.prompt-button');
+                if (button) {
+                    const topic = button.dataset.topic;
+                    const promptText = generatePromptText(topic);
+                    
+                    const currentText = bioTextarea.value;
+                    const textToInsert = (currentText.length > 0 && !currentText.endsWith('\n\n')) 
+                        ? `\n\n${promptText}` 
+                        : promptText;
+
+                    bioTextarea.value += textToInsert;
+                    bioTextarea.focus();
+                    bioTextarea.scrollTop = bioTextarea.scrollHeight;
+                    updateProgress();
+                }
+            });
+
+            // --- プロフィール充実度メーターのロジック ---
+            const progressBar = document.getElementById('progress-bar');
+            const progressPercent = document.getElementById('progress-percent');
+            const progressMessage = document.getElementById('progress-message');
+            const nicknameInput = document.getElementById('nickname');
+
+            function updateProgress() {
+                let completedTasks = 0;
+                const totalTasks = 7; 
+                const messages = [];
+
+                completedTasks++; // Profile Image
+                if (nicknameInput.value.trim() !== '') { completedTasks++; } else { messages.push('ニックネーム'); }
+                if (bioTextarea.value.trim().length >= 20) { completedTasks++; } else { messages.push('自己紹介(20文字以上)'); }
+                
+                const hasMedicalInfo = document.querySelector('#tags-container-disease .tag, #tags-container-treatment .tag, #tags-container-care .tag');
+                if (hasMedicalInfo) { completedTasks++; } else { messages.push('わたしのからだ記録'); }
+
+                if (document.querySelectorAll('#value-cards .selected').length > 0) { completedTasks++; } else { messages.push('大切なこと'); }
+                if (document.querySelectorAll('#coping-cards .selected').length > 0) { completedTasks++; } else { messages.push('気分の落ち込み対処法'); }
+                if (document.querySelectorAll('#selfcare-cards .selected').length > 0) { completedTasks++; } else { messages.push('セルフケア'); }
+
+                const percentage = Math.round((completedTasks / totalTasks) * 100);
+                progressBar.style.width = `${percentage}%`;
+                progressPercent.textContent = `${percentage}%`;
+
+                if (percentage === 100) {
+                    progressMessage.textContent = '素晴らしいです！すべての項目が入力されました。';
+                    progressBar.classList.remove('bg-amber-500');
+                    progressBar.classList.add('bg-green-500');
+                } else {
+                    progressMessage.innerHTML = `あと<strong>${messages.join('、')}</strong>を入力すると、他の人と繋がりやすくなります！`;
+                    progressBar.classList.remove('bg-green-500');
+                    progressBar.classList.add('bg-amber-500');
+                }
+            }
+
+            [nicknameInput, bioTextarea].forEach(el => el.addEventListener('input', updateProgress));
+            
+            // --- 初期化処理 ---
+            renderCards('value-cards', cardData.values, true);
+            renderCards('coping-cards', cardData.coping, true);
+            renderCards('selfcare-cards', cardData.selfcare, true);
+            renderCards('stance-cards', cardData.stance);
+
+            setupMultiSelect('value-cards', 3);
+            setupMultiSelect('coping-cards', 3);
+            setupMultiSelect('selfcare-cards', 3);
+            setupSingleSelect('stance-cards');
+
+            updateProgress(); // Initial check
+        });
+    </script>
 </body>
 </html>
